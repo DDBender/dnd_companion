@@ -30,4 +30,8 @@ The following text is the property of Wizards of the Coast, Inc. and is Copyrigh
 
 14. Reformation: If any provision of this License is held to be unenforceable, such provision shall be reformed only to the extent necessary to make it enforceable. 
 
-15. Open Game License v 1.0a Copyright 2000, Wizards of the Coast, Inc. System Reference Document Copyright 2000-2003, Wizards of the Coast, Inc.; Authors Jonathan Tweet, Monte Cook, Skip Williams, Rich Baker, Andy Collins, David Noonan, Nick Logue, Bruce R. Cordell, Polymorph Self from Better Wenitents; Revised by James Wyatt, James Jacobs, Erik Mona, Ed Stark, Tim Beach, Christopher Perkins. 3.5e Database Companion Copyright 2026, Daniel Bender
+15. COPYRIGHT NOTICE Open Game License v 1.0a Copyright 2000, Wizards of the Coast, Inc.
+
+System Reference Document Copyright 2000-2003, Wizards of the Coast, Inc.; Authors Jonathan Tweet, Monte Cook, Skip Williams, Rich Baker, Andy Collins, David Noonan, Rich Redman, Bruce R. Cordell, John D. Rateliff, Thomas Reid, James Wyatt, based on original material by E. Gary Gygax and Dave Arneson. 
+
+3.5e Database Companion Copyright 2026, Daniel Bender
