@@ -1,3 +1,21 @@
+/*
+ * 3.5e Database Companion - Database Schema & Initial Data
+ * Copyright (C) 2026 Daniel Bender
+ *
+ * -----------------------------------------------------------------------
+ * AI DISCLOSURE: 
+ * The table structures and data entries in this file were created by the 
+ * human author. Gemini Code Assist was utilized specifically for 
+ * implementing PostgreSQL Full-Text Search logic (TSVectors) and 
+ * performance indexing strategies.
+ * -----------------------------------------------------------------------
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
 --
 -- PostgreSQL database dump
 --
