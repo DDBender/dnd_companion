@@ -9,7 +9,7 @@ This project is a hybrid of software and gaming content, governed by the followi
 The **source code**, server logic, and database schema are licensed under the **GNU General Public License v3.0 (GPLv3)**. See the `LICENSE` file for the full text.
 
 ### 2. Game Content License
-All game mechanics, statistics, and descriptions derived from the 3.5e System Reference Document (SRD) are used under the **Open Game License v1.0a**. The full text of the OGL and the mandatory **Section 15 Copyright Notice** can be found in `OGL.txt`.
+All game mechanics, statistics, and descriptions derived from the 3.5e System Reference Document (SRD) are used under the **Open Game License v1.0a**. The full text of the OGL and the mandatory **Section 15 Copyright Notice** can be found in `LEGAL.md`.
 
 ### 3. Product Identity
 The following items are hereby identified as **Product Identity** as defined in the Open Game License 1.0a, Section 1(e), and are not Open Content:
