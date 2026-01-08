@@ -27,7 +27,7 @@ GNU General Public License for more details.
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify, abort, request
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -159,16 +159,57 @@ def get_character_sheet(character_id):
         if conn:
             conn.close()
 
-# Fetch all items for a short, general overview
+# Fetch all items for a short, general overview. Can filter category and search for words in name or description
 @app.route('/api/items')
 def get_items():
     conn = None
     try:
         conn = get_db_connection()
+        category = request.args.get('category')
+        name = request.args.get('name')
+        search = request.args.get('search')
+
         cur = conn.cursor()
-        cur.execute("SELECT id, name, item_type, price, weight, book_name FROM view_item_details ORDER BY name;")
+        query = "SELECT id, name, item_type, price, weight, book_name FROM view_item_details"
+        filters = []
+        params = []
+
+        if category:
+            filters.append("item_type = %s")
+            params.append(category)
+        # Used if looking for a specific name, not in description.
+        if name:
+            filters.append("name ILIKE %s")
+            params.append(f"%{name}%")
+        if search:
+            filters.append("(name ILIKE %s OR description ILIKE %s)")
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
+        query += " ORDER BY name;"
+
+        cur.execute(query, tuple(params))
         items = cur.fetchall()
         return jsonify(items)
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Fetch all item categories
+@app.route('/api/items/categories')
+def get_item_categories():
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT name FROM item_types ORDER BY name;")
+        categories = [row['name'] for row in cur.fetchall()]
+        return jsonify(categories)
     except (Exception, psycopg2.DatabaseError) as error:
         print(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
@@ -195,14 +236,23 @@ def get_item_detail(item_id):
         if conn:
             conn.close()
 
-# Fetch all spells for a short, general overview
+# Fetch all spells for a short, general overview. Can search for words in name or description.
 @app.route('/api/spells')
 def get_spells():
     conn = None
     try:
         conn = get_db_connection()
+        search = request.args.get('search')
         cur = conn.cursor()
-        cur.execute("SELECT id, name, school, subschool, book_name FROM view_spell_details ORDER BY name;")
+        query = "SELECT id, name, school, subschool, book_name FROM view_spell_details"
+        params = []
+        if search:
+            query += " WHERE (name ILIKE %s OR description ILIKE %s)"
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+        query += " ORDER BY name;"
+
+        cur.execute(query, tuple(params))
         spells = cur.fetchall()
         return jsonify(spells)
     except (Exception, psycopg2.DatabaseError) as error:
@@ -219,18 +269,7 @@ def get_spell_detail(spell_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        # Exclude search_vector to ensure JSON serializability
-        query = """
-            SELECT id, name, school, subschool, descriptors, casting_time, spell_range, 
-                   target, duration, saving_throw, spell_resistance, description, 
-                   source_id, has_verbal_component, has_somatic_component, 
-                   has_material_component, has_focus_component, has_xp_component, 
-                   has_divine_focus_component, has_expensive_component, 
-                   material_focus_description, gp_cost, xp_cost, page, book_name, book_abbr
-            FROM view_spell_details 
-            WHERE id = %s;
-        """
-        cur.execute(query, (spell_id,))
+        cur.execute("SELECT * FROM view_spell_details WHERE id = %s;", (spell_id,))
         spell = cur.fetchone()
         if spell is None:
             abort(404, description="Spell not found")
@@ -242,14 +281,24 @@ def get_spell_detail(spell_id):
         if conn:
             conn.close()
 
-#Fetch all feats for a short, general overview
+#Fetch all feats for a short, general overview. Can search for words in name, benefit and description
 @app.route('/api/feats')
 def get_feats():
     conn = None
     try:
         conn = get_db_connection()
+        search = request.args.get('search')
         cur = conn.cursor()
-        cur.execute("SELECT id, name, feat_type, book_name FROM view_feat_details ORDER BY name;")
+        query = "SELECT id, name, feat_type, book_name FROM view_feat_details"
+        params = []
+        if search:
+            query += " WHERE (name ILIKE %s OR benefit ILIKE %s OR description ILIKE %s)"
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+        query += " ORDER BY name;"
+
+        cur.execute(query, tuple(params))
         feats = cur.fetchall()
         return jsonify(feats)
     except (Exception, psycopg2.DatabaseError) as error:
@@ -278,14 +327,23 @@ def get_feat_detail(feat_id):
         if conn:
             conn.close()
 
-# Fetch all monsters for a short, general overview. DM only
+# Fetch all monsters for a short, general overview. DM only. Can search for words in name or type.
 @app.route('/api/monsters')
 def get_monsters():
     conn = None
     try:
         conn = get_db_connection()
+        search = request.args.get('search')
         cur = conn.cursor()
-        cur.execute("SELECT id, name, type, cr_text, book_name FROM view_monster_details ORDER BY name;")
+        query = "SELECT id, name, type, cr_text, book_name FROM view_monster_details"
+        params = []
+        if search:
+            query += " WHERE (name ILIKE %s OR type ILIKE %s)"
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+        query += " ORDER BY name;"
+
+        cur.execute(query, tuple(params))
         monsters = cur.fetchall()
         return jsonify(monsters)
     except (Exception, psycopg2.DatabaseError) as error:
@@ -386,16 +444,57 @@ def get_class_detail(class_id):
         if conn:
             conn.close()
 
-# Fetch all rules for a short, general overview
+# Fetch all rules for a short, general overview. Can filter by category and search for words in name and description.
 @app.route('/api/rules')
 def get_rules():
     conn = None
     try:
         conn = get_db_connection()
+        category = request.args.get('category')
+        name = request.args.get('name')
+        search = request.args.get('search')
+
         cur = conn.cursor()
-        cur.execute("SELECT id, name, category, subcategory FROM rules ORDER BY name;")
+        query = "SELECT id, name, category, subcategory FROM rules"
+        filters = []
+        params = []
+
+        if category:
+            filters.append("category = %s")
+            params.append(category)
+        # Used if looking for a specific name, not in description.
+        if name:
+            filters.append("name ILIKE %s")
+            params.append(f"%{name}%")
+        if search:
+            filters.append("(name ILIKE %s OR description ILIKE %s)")
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
+        query += " ORDER BY name;"
+
+        cur.execute(query, tuple(params))
         rules = cur.fetchall()
         return jsonify(rules)
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Fetch all rule categories
+@app.route('/api/rules/categories')
+def get_rule_categories():
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT DISTINCT category FROM rules ORDER BY category;")
+        categories = [row['category'] for row in cur.fetchall()]
+        return jsonify(categories)
     except (Exception, psycopg2.DatabaseError) as error:
         print(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
@@ -410,8 +509,7 @@ def get_rule_detail(rule_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        # Exclude search_vector and timestamps
-        cur.execute("SELECT id, name, category, subcategory, description FROM rules WHERE id = %s;", (rule_id,))
+        cur.execute("SELECT * FROM rules WHERE id = %s;", (rule_id,))
         rule = cur.fetchone()
         if rule is None:
             abort(404, description="Rule not found")
@@ -447,8 +545,7 @@ def get_skill_detail(skill_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        # Explicitly select columns to avoid potential issues with timestamps or other non-JSON types
-        cur.execute("SELECT id, name, key_attribute, trained_only, armor_check_penalty, description, source_id FROM skills WHERE id = %s;", (skill_id,))
+        cur.execute("SELECT * FROM skills WHERE id = %s;", (skill_id,))
         skill = cur.fetchone()
         if skill is None:
             abort(404, description="Skill not found")
@@ -466,8 +563,17 @@ def get_conditions():
     conn = None
     try:
         conn = get_db_connection()
+        search = request.args.get('search')
         cur = conn.cursor()
-        cur.execute("SELECT id, name FROM conditions ORDER BY name;")
+        query = "SELECT id, name FROM conditions"
+        params = []
+        if search:
+            query += " WHERE (name ILIKE %s OR description ILIKE %s)"
+            params.append(f"%{search}%")
+            params.append(f"%{search}%")
+        query += " ORDER BY name;"
+
+        cur.execute(query, tuple(params))
         conditions = cur.fetchall()
         return jsonify(conditions)
     except (Exception, psycopg2.DatabaseError) as error:
@@ -484,8 +590,7 @@ def get_condition_detail(condition_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        # Exclude search_vector
-        cur.execute("SELECT id, name, description FROM conditions WHERE id = %s;", (condition_id,))
+        cur.execute("SELECT * FROM conditions WHERE id = %s;", (condition_id,))
         condition = cur.fetchone()
         if condition is None:
             abort(404, description="Condition not found")

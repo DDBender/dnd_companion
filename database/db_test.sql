@@ -1,21 +1,3 @@
-/*
- * 3.5e Database Companion - Database Schema & Initial Data
- * Copyright (C) 2026 Daniel Bender
- *
- * -----------------------------------------------------------------------
- * AI DISCLOSURE: 
- * The table structures and data entries in this file were created by the 
- * human author. Gemini Code Assist was utilized specifically for 
- * implementing PostgreSQL Full-Text Search logic (TSVectors) and 
- * performance indexing strategies.
- * -----------------------------------------------------------------------
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
-
 --
 -- PostgreSQL database dump
 --
@@ -37,6 +19,12 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 --
 -- TOC entry 1098 (class 1247 OID 36650)
@@ -129,83 +117,6 @@ CREATE TYPE public.weapon_type_enum AS ENUM (
 ALTER TYPE public.weapon_type_enum OWNER TO postgres;
 
 --
--- TOC entry 316 (class 1255 OID 36688)
--- Name: conditions_search_vector_update(); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.conditions_search_vector_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.search_vector :=
-        setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
-        setweight(to_tsvector('english', coalesce(NEW.description, '')), 'B');
-    RETURN NEW;
-END;
-$$;
-
-
-ALTER FUNCTION public.conditions_search_vector_update() OWNER TO postgres;
-
---
--- TOC entry 310 (class 1255 OID 35837)
--- Name: feats_search_vector_update(); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.feats_search_vector_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.search_vector :=
-        setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
-        setweight(to_tsvector('english', coalesce(NEW.benefit, '')), 'B') ||
-        setweight(to_tsvector('english', coalesce(NEW.special, '')), 'C');
-    RETURN NEW;
-END;
-$$;
-
-
-ALTER FUNCTION public.feats_search_vector_update() OWNER TO postgres;
-
---
--- TOC entry 311 (class 1255 OID 35838)
--- Name: items_search_vector_update(); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.items_search_vector_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.search_vector :=
-        setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
-        setweight(to_tsvector('english', coalesce(NEW.description, '')), 'B');
-    RETURN NEW;
-END;
-$$;
-
-
-ALTER FUNCTION public.items_search_vector_update() OWNER TO postgres;
-
---
--- TOC entry 312 (class 1255 OID 35839)
--- Name: monsters_search_vector_update(); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.monsters_search_vector_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.search_vector :=
-        setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
-        setweight(to_tsvector('english', coalesce(NEW.description, '')), 'B');
-    RETURN NEW;
-END;
-$$;
-
-
-ALTER FUNCTION public.monsters_search_vector_update() OWNER TO postgres;
-
---
 -- TOC entry 317 (class 1255 OID 36694)
 -- Name: propagate_item_update(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -237,45 +148,6 @@ $$;
 
 
 ALTER FUNCTION public.propagate_item_update() OWNER TO postgres;
-
---
--- TOC entry 315 (class 1255 OID 36686)
--- Name: rules_search_vector_update(); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.rules_search_vector_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.search_vector :=
-        setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
-        setweight(to_tsvector('english', coalesce(NEW.description, '')), 'B') ||
-        setweight(to_tsvector('english', coalesce(NEW.category, '')), 'C');
-    RETURN NEW;
-END;
-$$;
-
-
-ALTER FUNCTION public.rules_search_vector_update() OWNER TO postgres;
-
---
--- TOC entry 313 (class 1255 OID 35840)
--- Name: spells_search_vector_update(); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.spells_search_vector_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.search_vector :=
-        setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
-        setweight(to_tsvector('english', coalesce(NEW.description, '')), 'B');
-    RETURN NEW;
-END;
-$$;
-
-
-ALTER FUNCTION public.spells_search_vector_update() OWNER TO postgres;
 
 --
 -- TOC entry 314 (class 1255 OID 36677)
@@ -1387,7 +1259,6 @@ CREATE TABLE public.feats (
     special text,
     description text,
     source_id integer NOT NULL,
-    search_vector tsvector,
     last_updated timestamp with time zone DEFAULT now()
 );
 
@@ -1473,7 +1344,6 @@ CREATE TABLE public.items (
     base_item_id integer,
     properties_id integer,
     last_updated timestamp with time zone DEFAULT now(),
-    search_vector tsvector,
     item_type_id integer NOT NULL,
     enhancement_bonus integer DEFAULT 0,
     enchantment_ids integer[],
@@ -1526,7 +1396,6 @@ CREATE TABLE public.monsters (
     dice_type integer,
     bonus integer,
     cr_number numeric(4,2),
-    search_vector tsvector,
     last_updated timestamp with time zone DEFAULT now()
 );
 
@@ -1703,7 +1572,6 @@ CREATE TABLE public.rules (
     name text NOT NULL,
     description text NOT NULL,
     source_id integer,
-    search_vector tsvector,
     last_updated timestamp with time zone DEFAULT now()
 );
 
@@ -1944,7 +1812,6 @@ CREATE TABLE public.spells (
     material_focus_description text,
     gp_cost integer DEFAULT 0 NOT NULL,
     xp_cost integer DEFAULT 0 NOT NULL,
-    search_vector tsvector,
     last_updated timestamp with time zone DEFAULT now()
 );
 
@@ -2302,7 +2169,6 @@ CREATE VIEW public.view_spell_details AS
     s.material_focus_description,
     s.gp_cost,
     s.xp_cost,
-    s.search_vector,
     se.page,
     src.name AS book_name,
     src.abbreviation AS book_abbr
@@ -2883,9 +2749,9 @@ COPY public.classes (id, name, is_prestige, skill_points, alignment, source_id, 
 -- Data for Name: conditions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.conditions (id, name, description, source_id, search_vector, last_updated) FROM stdin;
-1	Blinded	The creature cannot see. It takes a -2 penalty to Armor Class, loses its Dexterity bonus to AC (if any), and takes a -4 penalty on most Strength- and Dexterity-based skill checks and on opposed Perception checks.	1	'-2':9B '-4':25B 'ac':19B 'armor':12B 'base':33B 'blind':1A 'bonus':17B 'cannot':4B 'check':35B,40B 'class':13B 'creatur':3B 'dexter':16B,32B 'dexterity-bas':31B 'lose':14B 'oppos':38B 'penalti':10B,26B 'percept':39B 'see':5B 'skill':34B 'strength':29B 'take':7B,23B	2026-01-07 00:07:12.660111+01
-2	Dazed	The creature is unable to act normally. A dazed creature can take no actions, but has no penalty to AC.	1	'ac':21B 'act':7B 'action':15B 'creatur':3B,11B 'daze':1A,10B 'normal':8B 'penalti':19B 'take':13B 'unabl':5B	2026-01-07 00:07:12.660111+01
+COPY public.conditions (id, name, description, source_id, last_updated) FROM stdin;
+1	Blinded	The creature cannot see. It takes a -2 penalty to Armor Class, loses its Dexterity bonus to AC (if any), and takes a -4 penalty on most Strength- and Dexterity-based skill checks and on opposed Perception checks.	1	2026-01-07 00:07:12.660111+01
+2	Dazed	The creature is unable to act normally. A dazed creature can take no actions, but has no penalty to AC.	1	2026-01-07 00:07:12.660111+01
 \.
 
 
@@ -3054,9 +2920,9 @@ COPY public.feat_prereq_skill (id, feat_id, skill_name, ranks) FROM stdin;
 -- Data for Name: feats; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.feats (id, name, feat_type, benefit, normal, special, description, source_id, search_vector, last_updated) FROM stdin;
-1	Power Attack	General	You can make exceptionally powerful melee attacks.	\N	If you attack with a two-handed weapon, or with a one-handed weapon wielded in two hands, instead add twice the number subtracted from your attack rolls. You can’t add the bonus from Power Attack to the damage dealt with a light weapon (except with unarmed strikes or natural weapon attacks), even though the penalty on attack rolls still applies. (Normally, you treat a double weapon as a one-handed weapon and a light weapon. If you choose to use a double weapon like a two-handed weapon, attacking with only one end of it in a round, you treat it as a two-handed weapon.) A fighter may select Power Attack as one of his fighter bonus feats.	On your action, before making attack rolls for a round, you may choose to subtract a number from all melee attack rolls and add the same number to all melee damage rolls. This number may not exceed your base attack bonus. The penalty on attacks and bonus on damage apply until your next turn.	1	'add':31C,43C 'appli':73C 'attack':2A,9B,12C,38C,48C,64C,70C,104C,128C 'bonus':45C,134C 'choos':92C 'damag':51C 'dealt':52C 'doubl':78C,96C 'end':108C 'even':65C 'except':6B,57C 'feat':135C 'fighter':124C,133C 'hand':17C,24C,29C,84C,102C,121C 'instead':30C 'light':55C,88C 'like':98C 'make':5B 'may':125C 'mele':8B 'natur':62C 'normal':74C 'number':34C 'one':23C,83C,107C,130C 'one-hand':22C,82C 'penalti':68C 'power':1A,7B,47C,127C 'roll':39C,71C 'round':113C 'select':126C 'still':72C 'strike':60C 'subtract':35C 'though':66C 'treat':76C,115C 'twice':32C 'two':16C,28C,101C,120C 'two-hand':15C,100C,119C 'unarm':59C 'use':94C 'weapon':18C,25C,56C,63C,79C,85C,89C,97C,103C,122C 'wield':26C	2026-01-06 15:45:53.624211+01
-2	Spell Focus	General	Choose a school of magic, such as illusion. Your spells of that school are more potent than normal.	\N	You can gain this feat multiple times. Its effects do not stack. Each time you take the feat, it applies to a new school of magic.	Add +1 to the Difficulty Class for all saving throws against spells from the school of magic you select.	1	'appli':40C 'choos':3B 'effect':29C 'feat':25C,38C 'focus':2A 'gain':23C 'illus':10B 'magic':7B,46C 'multipl':26C 'new':43C 'normal':20B 'potent':18B 'school':5B,15B,44C 'spell':1A,12B 'stack':32C 'take':36C 'time':27C,34C	2026-01-06 15:45:53.624211+01
+COPY public.feats (id, name, feat_type, benefit, normal, special, description, source_id, last_updated) FROM stdin;
+1	Power Attack	General	You can make exceptionally powerful melee attacks.	\N	If you attack with a two-handed weapon, or with a one-handed weapon wielded in two hands, instead add twice the number subtracted from your attack rolls. You can’t add the bonus from Power Attack to the damage dealt with a light weapon (except with unarmed strikes or natural weapon attacks), even though the penalty on attack rolls still applies. (Normally, you treat a double weapon as a one-handed weapon and a light weapon. If you choose to use a double weapon like a two-handed weapon, attacking with only one end of it in a round, you treat it as a two-handed weapon.) A fighter may select Power Attack as one of his fighter bonus feats.	On your action, before making attack rolls for a round, you may choose to subtract a number from all melee attack rolls and add the same number to all melee damage rolls. This number may not exceed your base attack bonus. The penalty on attacks and bonus on damage apply until your next turn.	1	2026-01-06 15:45:53.624211+01
+2	Spell Focus	General	Choose a school of magic, such as illusion. Your spells of that school are more potent than normal.	\N	You can gain this feat multiple times. Its effects do not stack. Each time you take the feat, it applies to a new school of magic.	Add +1 to the Difficulty Class for all saving throws against spells from the school of magic you select.	1	2026-01-06 15:45:53.624211+01
 \.
 
 
@@ -3087,13 +2953,13 @@ COPY public.item_types (id, name) FROM stdin;
 -- Data for Name: items; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.items (id, name, description, price, weight, source_id, image_url, base_item_id, properties_id, last_updated, search_vector, item_type_id, enhancement_bonus, enchantment_ids, body_slot_id) FROM stdin;
-1	Longsword	A longsword is a martial weapon.	1500	4.00	1	\N	\N	1	2026-01-07 00:17:33.392261+01	'longsword':1A,3B 'martial':6B 'weapon':7B	1	0	\N	13
-2	Shortbow	A shortbow is a martial ranged weapon.	3000	2.00	1	\N	\N	2	2026-01-07 00:17:33.392261+01	'martial':6B 'rang':7B 'shortbow':1A,3B 'weapon':8B	1	0	\N	13
-3	Chainmail	Chainmail armor.	15000	40.00	1	\N	\N	1	2026-01-07 00:17:33.392261+01	'armor':3B 'chainmail':1A,2B	2	0	\N	5
-4	Leather Armor	Leather armor.	1000	15.00	1	\N	\N	2	2026-01-07 00:17:33.392261+01	'armor':2A,4B 'leather':1A,3B	2	0	\N	5
-5	Backpack	A leather pack carried on the back.	200	2.00	1	\N	\N	\N	2026-01-07 00:17:33.392261+01	'back':8B 'backpack':1A 'carri':5B 'leather':3B 'pack':4B	11	0	\N	14
-6	Torch	A wooden stick wrapped in cloth and dipped in pitch.	1	1.00	1	\N	\N	\N	2026-01-07 00:17:33.392261+01	'cloth':7B 'dip':9B 'pitch':11B 'stick':4B 'torch':1A 'wooden':3B 'wrap':5B	11	0	\N	13
+COPY public.items (id, name, description, price, weight, source_id, image_url, base_item_id, properties_id, last_updated, item_type_id, enhancement_bonus, enchantment_ids, body_slot_id) FROM stdin;
+1	Longsword	A longsword is a martial weapon.	1500	4.00	1	\N	\N	1	2026-01-07 00:17:33.392261+01	1	0	\N	13
+2	Shortbow	A shortbow is a martial ranged weapon.	3000	2.00	1	\N	\N	2	2026-01-07 00:17:33.392261+01	1	0	\N	13
+3	Chainmail	Chainmail armor.	15000	40.00	1	\N	\N	1	2026-01-07 00:17:33.392261+01	2	0	\N	5
+4	Leather Armor	Leather armor.	1000	15.00	1	\N	\N	2	2026-01-07 00:17:33.392261+01	2	0	\N	5
+5	Backpack	A leather pack carried on the back.	200	2.00	1	\N	\N	\N	2026-01-07 00:17:33.392261+01	11	0	\N	14
+6	Torch	A wooden stick wrapped in cloth and dipped in pitch.	1	1.00	1	\N	\N	\N	2026-01-07 00:17:33.392261+01	11	0	\N	13
 \.
 
 
@@ -3103,9 +2969,9 @@ COPY public.items (id, name, description, price, weight, source_id, image_url, b
 -- Data for Name: monsters; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.monsters (id, name, cr_text, type, alignment, hit_dice, description, source_id, num_dice, dice_type, bonus, cr_number, search_vector, last_updated) FROM stdin;
-3	Goblin	1/3	Humanoid (Goblinoid)	Neutral Evil	1d8+1	\N	1	1	8	1	0.33	'goblin':1A	2026-01-07 00:07:12.660111+01
-4	Skeleton, Human Warrior	1/3	Undead	Neutral Evil	1d12	\N	1	1	12	0	0.33	'human':2A 'skeleton':1A 'warrior':3A	2026-01-07 00:07:12.660111+01
+COPY public.monsters (id, name, cr_text, type, alignment, hit_dice, description, source_id, num_dice, dice_type, bonus, cr_number, last_updated) FROM stdin;
+3	Goblin	1/3	Humanoid (Goblinoid)	Neutral Evil	1d8+1	\N	1	1	8	1	0.33	2026-01-07 00:07:12.660111+01
+4	Skeleton, Human Warrior	1/3	Undead	Neutral Evil	1d12	\N	1	1	12	0	0.33	2026-01-07 00:07:12.660111+01
 \.
 
 
@@ -3224,9 +3090,9 @@ COPY public.races (id, name, size, speed, type, source_id, last_updated, persona
 -- Data for Name: rules; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.rules (id, category, subcategory, name, description, source_id, search_vector, last_updated) FROM stdin;
-1	Combat	\N	Attack Roll	An attack roll represents your attempt to strike your opponent on your turn in a round. When you make an attack roll, you roll a d20 and add your attack bonus. (Other modifiers may also apply to this roll.) If your result equals or beats the target’s Armor Class, you hit and deal damage.	1	'add':30B 'also':37B 'appli':38B 'armor':51B 'attack':1A,4B,23B,32B 'attempt':8B 'beat':47B 'bonus':33B 'class':52B 'combat':58C 'd20':28B 'damag':57B 'deal':56B 'equal':45B 'hit':54B 'make':21B 'may':36B 'modifi':35B 'oppon':12B 'repres':6B 'result':44B 'roll':2A,5B,24B,26B,41B 'round':18B 'strike':10B 'target':49B 'turn':15B	2026-01-07 00:18:25.526552+01
-2	Exploration	\N	Light and Vision	Characters need light to see. Bright light illuminates an area clearly. Shadowy illumination allows creatures to be seen but grants them concealment.	1	'allow':17B 'area':13B 'bright':9B 'charact':4B 'clear':14B 'conceal':25B 'creatur':18B 'explor':26C 'grant':23B 'illumin':11B,16B 'light':1A,6B,10B 'need':5B 'see':8B 'seen':21B 'shadowi':15B 'vision':3A	2026-01-07 00:18:25.526552+01
+COPY public.rules (id, category, subcategory, name, description, source_id, last_updated) FROM stdin;
+1	Combat	\N	Attack Roll	An attack roll represents your attempt to strike your opponent on your turn in a round. When you make an attack roll, you roll a d20 and add your attack bonus. (Other modifiers may also apply to this roll.) If your result equals or beats the target’s Armor Class, you hit and deal damage.	1	2026-01-07 00:18:25.526552+01
+2	Exploration	\N	Light and Vision	Characters need light to see. Bright light illuminates an area clearly. Shadowy illumination allows creatures to be seen but grants them concealment.	1	2026-01-07 00:18:25.526552+01
 \.
 
 
@@ -3349,9 +3215,9 @@ COPY public.spell_levels (spell_id, level, class_id) FROM stdin;
 -- Data for Name: spells; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.spells (id, name, school, subschool, descriptors, casting_time, spell_range, target, duration, saving_throw, spell_resistance, description, source_id, has_verbal_component, has_somatic_component, has_material_component, has_focus_component, has_xp_component, has_divine_focus_component, has_expensive_component, material_focus_description, gp_cost, xp_cost, search_vector, last_updated) FROM stdin;
-5	Magic Missile	Evocation	Force	{Force}	1 standard action	Medium (100 ft. + 10 ft./level)	Up to five creatures	Instantaneous	None	t	A missile of magical energy darts forth from your fingertip.	1	t	t	f	f	f	f	f	\N	0	0	'dart':8B 'energi':7B 'fingertip':12B 'forth':9B 'magic':1A,6B 'missil':2A,4B	2026-01-07 00:07:12.660111+01
-6	Cure Light Wounds	Conjuration	Healing	\N	1 standard action	Touch	Creature touched	Instantaneous	Will half (harmless)	t	Channels positive energy that cures 1d8 points of damage +1 point per caster level.	1	t	t	f	f	f	f	f	\N	0	0	'+1':13B '1d8':9B 'caster':16B 'channel':4B 'cure':1A,8B 'damag':12B 'energi':6B 'level':17B 'light':2A 'per':15B 'point':10B,14B 'posit':5B 'wound':3A	2026-01-07 00:07:12.660111+01
+COPY public.spells (id, name, school, subschool, descriptors, casting_time, spell_range, target, duration, saving_throw, spell_resistance, description, source_id, has_verbal_component, has_somatic_component, has_material_component, has_focus_component, has_xp_component, has_divine_focus_component, has_expensive_component, material_focus_description, gp_cost, xp_cost, last_updated) FROM stdin;
+5	Magic Missile	Evocation	Force	{Force}	1 standard action	Medium (100 ft. + 10 ft./level)	Up to five creatures	Instantaneous	None	t	A missile of magical energy darts forth from your fingertip.	1	t	t	f	f	f	f	f	\N	0	0	2026-01-07 00:07:12.660111+01
+6	Cure Light Wounds	Conjuration	Healing	\N	1 standard action	Touch	Creature touched	Instantaneous	Will half (harmless)	t	Channels positive energy that cures 1d8 points of damage +1 point per caster level.	1	t	t	f	f	f	f	f	\N	0	0	2026-01-07 00:07:12.660111+01
 \.
 
 
@@ -4411,14 +4277,6 @@ CREATE INDEX idx_classes_name_lower ON public.classes USING btree (lower(name));
 
 
 --
--- TOC entry 3612 (class 1259 OID 36210)
--- Name: idx_conditions_search; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_conditions_search ON public.conditions USING gin (search_vector);
-
-
---
 -- TOC entry 3631 (class 1259 OID 36723)
 -- Name: idx_enchantments_bonus_type_id; Type: INDEX; Schema: public; Owner: postgres
 --
@@ -4432,15 +4290,6 @@ CREATE INDEX idx_enchantments_bonus_type_id ON public.enchantments USING btree (
 --
 
 CREATE INDEX idx_feats_name_lower ON public.feats USING btree (lower(name));
-
-
---
--- TOC entry 3651 (class 1259 OID 36211)
--- Name: idx_feats_search; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_feats_search ON public.feats USING gin (search_vector);
-
 
 --
 -- TOC entry 3652 (class 1259 OID 36212)
@@ -4505,15 +4354,6 @@ CREATE INDEX idx_monsters_cr_number ON public.monsters USING btree (cr_number);
 
 CREATE INDEX idx_monsters_name_lower ON public.monsters USING btree (lower(name));
 
-
---
--- TOC entry 3659 (class 1259 OID 36216)
--- Name: idx_monsters_search; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_monsters_search ON public.monsters USING gin (search_vector);
-
-
 --
 -- TOC entry 3660 (class 1259 OID 36217)
 -- Name: idx_monsters_type; Type: INDEX; Schema: public; Owner: postgres
@@ -4536,15 +4376,6 @@ CREATE INDEX idx_races_name_lower ON public.races USING btree (lower(name));
 --
 
 CREATE INDEX idx_rules_category ON public.rules USING btree (category);
-
-
---
--- TOC entry 3671 (class 1259 OID 36219)
--- Name: idx_rules_search; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_rules_search ON public.rules USING gin (search_vector);
-
 
 --
 -- TOC entry 3674 (class 1259 OID 36646)
@@ -4569,15 +4400,6 @@ CREATE INDEX idx_spells_name_lower ON public.spells USING btree (lower(name));
 
 CREATE INDEX idx_spells_school ON public.spells USING btree (school);
 
-
---
--- TOC entry 3689 (class 1259 OID 36221)
--- Name: idx_spells_search; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_spells_search ON public.spells USING gin (search_vector);
-
-
 --
 -- TOC entry 3690 (class 1259 OID 36222)
 -- Name: idx_spells_source_id; Type: INDEX; Schema: public; Owner: postgres
@@ -4600,14 +4422,6 @@ CREATE TRIGGER track_armor_prop_updates AFTER UPDATE ON public.armor_properties 
 --
 
 CREATE TRIGGER track_class_updates BEFORE UPDATE ON public.classes FOR EACH ROW EXECUTE FUNCTION public.update_timestamp();
-
-
---
--- TOC entry 3804 (class 2620 OID 36692)
--- Name: conditions track_condition_updates; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER track_condition_updates BEFORE UPDATE ON public.conditions FOR EACH ROW EXECUTE FUNCTION public.update_timestamp();
 
 
 --
@@ -4688,55 +4502,6 @@ CREATE TRIGGER track_spell_updates BEFORE UPDATE ON public.spells FOR EACH ROW E
 --
 
 CREATE TRIGGER track_weapon_prop_updates AFTER UPDATE ON public.weapon_properties FOR EACH ROW EXECUTE FUNCTION public.propagate_item_update();
-
-
---
--- TOC entry 3805 (class 2620 OID 36689)
--- Name: conditions tsvectorupdate_conditions; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER tsvectorupdate_conditions BEFORE INSERT OR UPDATE ON public.conditions FOR EACH ROW EXECUTE FUNCTION public.conditions_search_vector_update();
-
-
---
--- TOC entry 3807 (class 2620 OID 36224)
--- Name: feats tsvectorupdate_feats; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER tsvectorupdate_feats BEFORE INSERT OR UPDATE ON public.feats FOR EACH ROW EXECUTE FUNCTION public.feats_search_vector_update();
-
-
---
--- TOC entry 3819 (class 2620 OID 36685)
--- Name: items tsvectorupdate_items; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER tsvectorupdate_items BEFORE INSERT OR UPDATE ON public.items FOR EACH ROW EXECUTE FUNCTION public.items_search_vector_update();
-
-
---
--- TOC entry 3809 (class 2620 OID 36226)
--- Name: monsters tsvectorupdate_monsters; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER tsvectorupdate_monsters BEFORE INSERT OR UPDATE ON public.monsters FOR EACH ROW EXECUTE FUNCTION public.monsters_search_vector_update();
-
-
---
--- TOC entry 3812 (class 2620 OID 36687)
--- Name: rules tsvectorupdate_rules; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER tsvectorupdate_rules BEFORE INSERT OR UPDATE ON public.rules FOR EACH ROW EXECUTE FUNCTION public.rules_search_vector_update();
-
-
---
--- TOC entry 3817 (class 2620 OID 36227)
--- Name: spells tsvectorupdate_spells; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER tsvectorupdate_spells BEFORE INSERT OR UPDATE ON public.spells FOR EACH ROW EXECUTE FUNCTION public.spells_search_vector_update();
-
 
 --
 -- TOC entry 3749 (class 2606 OID 36233)
@@ -5069,6 +4834,25 @@ ALTER TABLE ONLY public.items
 
 ALTER TABLE ONLY public.weapon_damage_type
     ADD CONSTRAINT fk_weapon_damage_type_properties FOREIGN KEY (weapon_properties_id) REFERENCES public.weapon_properties(id) ON DELETE CASCADE;
+
+
+--
+-- Trigram Indexes for efficient ILIKE searches
+--
+
+CREATE INDEX idx_items_name_trgm ON public.items USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_spells_name_trgm ON public.spells USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_feats_name_trgm ON public.feats USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_monsters_name_trgm ON public.monsters USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_rules_name_trgm ON public.rules USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_skills_name_trgm ON public.skills USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_conditions_name_trgm ON public.conditions USING gin (name gin_trgm_ops);
 
 
 --
@@ -5654,4 +5438,3 @@ GRANT SELECT ON TABLE public.weapon_damage_type TO dnd_app_user;
 --
 
 \unrestrict KfLY6u2zhjTjhdw85hbHDKceyhe9bcMkY9f97acfes28II7vmBskHagul8zB359
-
