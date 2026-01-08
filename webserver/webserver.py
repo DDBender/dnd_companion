@@ -29,23 +29,82 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import Flask, jsonify, abort, request
 from dotenv import load_dotenv
+import jwt
+import datetime
+from functools import wraps
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "your_secret_key")
 
 # Database connection using the .env file
-def get_db_connection():
+def get_db_connection(db_role='player'):
+    # Select credentials based on the requested database role
+    if db_role == 'dm':
+        user = os.environ.get("DB_GM_USER", os.environ.get("DB_USER"))
+        password = os.environ.get("DB_GM_PASSWORD", os.environ.get("DB_PASSWORD"))
+    elif db_role == 'auth':
+        user = os.environ.get("DB_AUTH_USER", os.environ.get("DB_USER"))
+        password = os.environ.get("DB_AUTH_PASSWORD", os.environ.get("DB_PASSWORD"))
+    else: # default to player
+        user = os.environ.get("DB_PLAYER_USER", os.environ.get("DB_USER"))
+        password = os.environ.get("DB_PLAYER_PASSWORD", os.environ.get("DB_PASSWORD"))
+
     conn = psycopg2.connect(
         host=os.environ.get("DB_HOST"),
         database=os.environ.get("DB_NAME"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
+        user=user,
+        password=password,
         port=os.environ.get("DB_PORT"),
     )
     conn.cursor_factory = RealDictCursor
     return conn
+
+# Decorator for verifying the JWT
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(" ")[1]
+        
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+        
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user_id = data['user_id']
+        except:
+            return jsonify({'message': 'Token is invalid!'}), 401
+        
+        return f(current_user_id, *args, **kwargs)
+    
+    return decorated
+
+# Decorator for verifying the user is a DM
+def dm_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(" ")[1]
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            if data.get('role') != 'dm':
+                return jsonify({'message': 'DM access required'}), 403
+        except:
+            return jsonify({'message': 'Token is invalid!'}), 401
+        return f(*args, **kwargs)
+    return decorated
 
 # Root directory. No content yet
 @app.route('/')
@@ -70,17 +129,96 @@ def db_test():
         if conn:
             conn.close()
 
+# Route for registration
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({'message': 'Username and password are required'}), 400
+
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+    role = 'player' # Always register as player. Admin can change later.
+
+    conn = None
+    try:
+        conn = get_db_connection(db_role='auth')
+        cur = conn.cursor()
+
+        # Check if username exists
+        cur.execute('SELECT id FROM users WHERE username = %s', (username,))
+        if cur.fetchone():
+            return jsonify({'message': 'Username already exists'}), 409
+
+        # Check if email exists (if provided)
+        if email:
+            cur.execute('SELECT id FROM users WHERE email = %s', (email,))
+            if cur.fetchone():
+                return jsonify({'message': 'Email already exists'}), 409
+
+        hashed_password = generate_password_hash(password)
+
+        cur.execute(
+            'INSERT INTO users (username, password_hash, email, role) VALUES (%s, %s, %s, %s) RETURNING id',
+            (username, hashed_password, email, role)
+        )
+        user_id = cur.fetchone()['id']
+        conn.commit()
+
+        return jsonify({'message': 'User registered successfully', 'user_id': user_id, 'role': role}), 201
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        if conn:
+            conn.rollback()
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Route for login
+@app.route('/api/login', methods=['POST'])
+def login():
+    auth = request.json
+    if not auth or not auth.get('username') or not auth.get('password'):
+        return jsonify({'message': 'Could not verify', 'WWW-Authenticate': 'Basic realm="Login required!"'}), 401
+
+    conn = None
+    try:
+        conn = get_db_connection(db_role='auth')
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM users WHERE username = %s', (auth.get('username'),))
+        user = cur.fetchone()
+        cur.close()
+
+        if not user:
+             return jsonify({'message': 'User not found'}), 401
+
+        if check_password_hash(user['password_hash'], auth.get('password')):
+             token = jwt.encode({
+                 'user_id': user['id'],
+                 'role': user['role'],
+                 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+             }, app.config['SECRET_KEY'], algorithm="HS256")
+             return jsonify({'token': token, 'role': user['role'], 'user_id': user['id']})
+
+        return jsonify({'message': 'Could not verify'}), 401
+    except Exception as e:
+        print(e)
+        return jsonify({"status": "error", "error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
 # Route to get the characters of a user. Not all character information is loaded, just for an overview
-@app.route('/api/users/<int:user_id>/characters')
-def get_user_characters(user_id):
+@app.route('/api/characters', methods=['GET'])
+@token_required
+def get_user_characters(current_user_id):
     conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-
-        cur.execute('SELECT id FROM users WHERE id = %s;', (user_id,))
-        if cur.fetchone() is None:
-            abort(404, description="User not found")
 
         # Join characters, race and class info for the characters
         query = """
@@ -96,7 +234,7 @@ def get_user_characters(user_id):
             WHERE c.user_id = %s
             GROUP BY c.id, r.name;
         """
-        cur.execute(query, (user_id,))
+        cur.execute(query, (current_user_id,))
         characters = cur.fetchall()
         cur.close()
 
@@ -109,9 +247,276 @@ def get_user_characters(user_id):
         if conn:
             conn.close()
 
+# Create a new character
+@app.route('/api/characters', methods=['POST'])
+@token_required
+def create_character(current_user_id):
+    data = request.json
+    # Basic validation
+    if not data or not data.get('name') or not data.get('race_id'):
+        return jsonify({'message': 'Name and Race ID are required'}), 400
+
+    conn = None
+    try:
+        conn = get_db_connection() # Default role 'player' has write access
+        cur = conn.cursor()
+
+        # Insert character
+        query = """
+            INSERT INTO characters (
+                user_id, name, race_id, alignment, gender, age, height, weight, description,
+                strength, dexterity, constitution, intelligence, wisdom, charisma,
+                hit_points_max, hit_points_current, experience_points, money_gp
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s
+            ) RETURNING id;
+        """
+        cur.execute(query, (
+            current_user_id,
+            data.get('name'),
+            data.get('race_id'),
+            data.get('alignment'),
+            data.get('gender'),
+            data.get('age'),
+            data.get('height'),
+            data.get('weight'),
+            data.get('description'),
+            data.get('strength', 10),
+            data.get('dexterity', 10),
+            data.get('constitution', 10),
+            data.get('intelligence', 10),
+            data.get('wisdom', 10),
+            data.get('charisma', 10),
+            data.get('hit_points_max', 0),
+            data.get('hit_points_current', 0),
+            data.get('experience_points', 0),
+            data.get('money_gp', 0)
+        ))
+        character_id = cur.fetchone()['id']
+
+        # Insert classes if present
+        # Expecting list of dicts: [{"class_id": 1, "level": 1}, ...]
+        classes = data.get('classes', [])
+        if classes:
+            class_query = """
+                INSERT INTO character_classes (character_id, class_id, class_level)
+                VALUES (%s, %s, %s)
+            """
+            for c in classes:
+                c_id = c.get('class_id')
+                level = c.get('level')
+                if c_id and level:
+                    cur.execute(class_query, (character_id, c_id, level))
+
+        conn.commit()
+        return jsonify({'message': 'Character created successfully', 'character_id': character_id}), 201
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        if conn:
+            conn.rollback()
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Update an existing character
+@app.route('/api/characters/<int:character_id>', methods=['PUT'])
+@token_required
+def update_character(current_user_id, character_id):
+    data = request.json
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Check ownership
+        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        char = cur.fetchone()
+        if not char:
+            return jsonify({'message': 'Character not found'}), 404
+        if char['user_id'] != current_user_id:
+            return jsonify({'message': 'Unauthorized'}), 403
+
+        # Build update query dynamically
+        fields = []
+        values = []
+        # List of allowed columns to update
+        allowed = ['name', 'alignment', 'gender', 'age', 'height', 'weight', 'description',
+                   'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma',
+                   'hit_points_max', 'hit_points_current', 'experience_points', 'money_gp']
+        
+        for key, val in data.items():
+            if key in allowed:
+                fields.append(f"{key} = %s")
+                values.append(val)
+        
+        if not fields:
+            return jsonify({'message': 'No valid fields provided for update'}), 400
+            
+        values.append(character_id)
+        query = f"UPDATE characters SET {', '.join(fields)} WHERE id = %s"
+        cur.execute(query, tuple(values))
+        conn.commit()
+        
+        return jsonify({'message': 'Character updated successfully'}), 200
+    except (Exception, psycopg2.DatabaseError) as error:
+        if conn:
+            conn.rollback()
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Add an item to character inventory
+@app.route('/api/characters/<int:character_id>/inventory', methods=['POST'])
+@token_required
+def add_character_item(current_user_id, character_id):
+    data = request.json
+    if not data or not data.get('item_id'):
+        return jsonify({'message': 'Item ID is required'}), 400
+    
+    item_id = data.get('item_id')
+    quantity = data.get('quantity', 1)
+    
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Check ownership
+        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        char = cur.fetchone()
+        if not char:
+            return jsonify({'message': 'Character not found'}), 404
+        if char['user_id'] != current_user_id:
+            return jsonify({'message': 'Unauthorized'}), 403
+            
+        # Determine item type to insert into correct table
+        cur.execute("""
+            SELECT it.name 
+            FROM items i 
+            JOIN item_types it ON i.item_type_id = it.id 
+            WHERE i.id = %s
+        """, (item_id,))
+        result = cur.fetchone()
+        
+        if not result:
+            return jsonify({'message': 'Item not found'}), 404
+            
+        item_type = result['name'].lower()
+        
+        if item_type == 'weapon':
+            cur.execute("INSERT INTO character_weapons (character_id, item_id, quantity) VALUES (%s, %s, %s)", (character_id, item_id, quantity))
+        elif item_type == 'armor':
+            cur.execute("INSERT INTO character_armor (character_id, item_id, quantity) VALUES (%s, %s, %s)", (character_id, item_id, quantity))
+        else:
+            cur.execute("INSERT INTO character_gear (character_id, item_id, quantity) VALUES (%s, %s, %s)", (character_id, item_id, quantity))
+            
+        conn.commit()
+        
+        return jsonify({'message': 'Item added to inventory'}), 201
+    except (Exception, psycopg2.DatabaseError) as error:
+        if conn:
+            conn.rollback()
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Add a feat to character
+@app.route('/api/characters/<int:character_id>/feats', methods=['POST'])
+@token_required
+def add_character_feat(current_user_id, character_id):
+    data = request.json
+    if not data or not data.get('feat_id'):
+        return jsonify({'message': 'Feat ID is required'}), 400
+    
+    feat_id = data.get('feat_id')
+    note = data.get('note')
+    
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Check ownership
+        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        char = cur.fetchone()
+        if not char:
+            return jsonify({'message': 'Character not found'}), 404
+        if char['user_id'] != current_user_id:
+            return jsonify({'message': 'Unauthorized'}), 403
+            
+        # Insert feat
+        cur.execute("""
+            INSERT INTO character_feats (character_id, feat_id, note)
+            VALUES (%s, %s, %s)
+        """, (character_id, feat_id, note))
+        conn.commit()
+        
+        return jsonify({'message': 'Feat added to character'}), 201
+    except (Exception, psycopg2.DatabaseError) as error:
+        if conn:
+            conn.rollback()
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Add/Update a skill for character
+@app.route('/api/characters/<int:character_id>/skills', methods=['POST'])
+@token_required
+def add_character_skill(current_user_id, character_id):
+    data = request.json
+    if not data or not data.get('skill_id') or data.get('ranks') is None:
+        return jsonify({'message': 'Skill ID and Ranks are required'}), 400
+    
+    skill_id = data.get('skill_id')
+    ranks = data.get('ranks')
+    
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Check ownership
+        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        char = cur.fetchone()
+        if not char:
+            return jsonify({'message': 'Character not found'}), 404
+        if char['user_id'] != current_user_id:
+            return jsonify({'message': 'Unauthorized'}), 403
+        
+        # Check if skill exists (Upsert logic)
+        cur.execute("SELECT id FROM character_skills WHERE character_id = %s AND skill_id = %s", (character_id, skill_id))
+        existing_skill = cur.fetchone()
+        
+        if existing_skill:
+            cur.execute("UPDATE character_skills SET ranks = %s WHERE id = %s", (ranks, existing_skill['id']))
+        else:
+            cur.execute("INSERT INTO character_skills (character_id, skill_id, ranks) VALUES (%s, %s, %s)", (character_id, skill_id, ranks))
+            
+        conn.commit()
+        return jsonify({'message': 'Skill updated successfully'}), 200
+    except (Exception, psycopg2.DatabaseError) as error:
+        if conn:
+            conn.rollback()
+        print(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
 # Fetch full character sheet for a giving character. Should only be run if the user is owner of the character
 @app.route('/api/characters/<int:character_id>')
-def get_character_sheet(character_id):
+@token_required
+def get_character_sheet(current_user_id, character_id):
     conn = None
     try:
         conn = get_db_connection()
@@ -128,18 +533,24 @@ def get_character_sheet(character_id):
             JOIN races r ON c.race_id = r.id
             LEFT JOIN character_classes cc ON c.id = cc.character_id
             LEFT JOIN classes cl ON cc.class_id = cl.id
-            WHERE c.id = %s
+            WHERE c.id = %s AND c.user_id = %s
             GROUP BY c.id, r.name;
         """
-        cur.execute(query_char, (character_id,))
+        cur.execute(query_char, (character_id, current_user_id))
         character = cur.fetchone()
 
         if character is None:
             abort(404, description="Character not found")
 
-        # Inventory, feats, skills and spells
-        cur.execute("SELECT * FROM view_character_inventory WHERE character_id = %s", (character_id,))
-        character['inventory'] = cur.fetchall()
+        # Inventory split into weapons, armor, and gear
+        cur.execute("SELECT * FROM view_character_weapons WHERE character_id = %s", (character_id,))
+        character['weapons'] = cur.fetchall()
+
+        cur.execute("SELECT * FROM view_character_armor WHERE character_id = %s", (character_id,))
+        character['armor'] = cur.fetchall()
+
+        cur.execute("SELECT * FROM view_character_gear WHERE character_id = %s", (character_id,))
+        character['gear'] = cur.fetchall()
 
         cur.execute("SELECT * FROM view_character_feats WHERE character_id = %s", (character_id,))
         character['feats'] = cur.fetchall()
@@ -329,10 +740,11 @@ def get_feat_detail(feat_id):
 
 # Fetch all monsters for a short, general overview. DM only. Can search for words in name or type.
 @app.route('/api/monsters')
+@dm_required
 def get_monsters():
     conn = None
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(db_role='dm')
         search = request.args.get('search')
         cur = conn.cursor()
         query = "SELECT id, name, type, cr_text, book_name FROM view_monster_details"
@@ -355,10 +767,11 @@ def get_monsters():
 
 # Fetch the exact details for a monster. DM only
 @app.route('/api/monsters/<int:monster_id>')
+@dm_required
 def get_monster_detail(monster_id):
     conn = None
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(db_role='dm')
         cur = conn.cursor()
         cur.execute("SELECT * FROM view_monster_details WHERE id = %s;", (monster_id,))
         monster = cur.fetchone()
