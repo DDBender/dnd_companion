@@ -26,3 +26,10 @@
 
     Environment file:
         - Add roles for database usage to use them in the webserver
+
+09.01.2026 v0.13
+    Database:
+        - Rename Character to Adventurer (all tables, columns, sequences with character modified)
+
+    Webserver:
+        - Rename Character to Adventurer

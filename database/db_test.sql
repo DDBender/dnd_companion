@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict 7GEaX4ieytJbIdhQkzbumWvQMmcrREWupFVBkylmsdpfHakR1DEtdNLweN8b4FC
+\restrict WqAN5vpSFhzqdWH7PvMjY6mGo9KoFxoU4gWF8zI0icLVry5kKuQMAEseIeOAmVL
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 
--- Started on 2026-01-08 23:51:42 CET
+-- Started on 2026-01-09 13:37:39 CET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -182,6 +182,375 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- TOC entry 308 (class 1259 OID 39703)
+-- Name: adventurer_armor; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_armor (
+    id integer NOT NULL,
+    adventurer_id integer NOT NULL,
+    item_id integer NOT NULL,
+    quantity integer DEFAULT 1,
+    is_equipped boolean DEFAULT false,
+    is_masterwork boolean DEFAULT false,
+    enhancement_bonus integer DEFAULT 0,
+    enchantment_ids integer[],
+    custom_name text,
+    notes text
+);
+
+
+ALTER TABLE public.adventurer_armor OWNER TO postgres;
+
+--
+-- TOC entry 307 (class 1259 OID 39702)
+-- Name: adventurer_armor_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurer_armor_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurer_armor_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4138 (class 0 OID 0)
+-- Dependencies: 307
+-- Name: adventurer_armor_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurer_armor_id_seq OWNED BY public.adventurer_armor.id;
+
+
+--
+-- TOC entry 224 (class 1259 OID 38857)
+-- Name: adventurer_classes; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_classes (
+    adventurer_id integer NOT NULL,
+    class_id integer NOT NULL,
+    class_level integer NOT NULL
+);
+
+
+ALTER TABLE public.adventurer_classes OWNER TO postgres;
+
+--
+-- TOC entry 225 (class 1259 OID 38860)
+-- Name: adventurer_feats; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_feats (
+    adventurer_id integer NOT NULL,
+    feat_id integer NOT NULL,
+    note text,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.adventurer_feats OWNER TO postgres;
+
+--
+-- TOC entry 226 (class 1259 OID 38865)
+-- Name: adventurer_feats_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurer_feats_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurer_feats_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4142 (class 0 OID 0)
+-- Dependencies: 226
+-- Name: adventurer_feats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurer_feats_id_seq OWNED BY public.adventurer_feats.id;
+
+
+--
+-- TOC entry 310 (class 1259 OID 39726)
+-- Name: adventurer_gear; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_gear (
+    id integer NOT NULL,
+    adventurer_id integer NOT NULL,
+    item_id integer NOT NULL,
+    quantity integer DEFAULT 1,
+    is_equipped boolean DEFAULT false,
+    custom_name text,
+    notes text
+);
+
+
+ALTER TABLE public.adventurer_gear OWNER TO postgres;
+
+--
+-- TOC entry 309 (class 1259 OID 39725)
+-- Name: adventurer_gear_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurer_gear_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurer_gear_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4145 (class 0 OID 0)
+-- Dependencies: 309
+-- Name: adventurer_gear_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurer_gear_id_seq OWNED BY public.adventurer_gear.id;
+
+
+--
+-- TOC entry 227 (class 1259 OID 38876)
+-- Name: adventurer_skills; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_skills (
+    adventurer_id integer NOT NULL,
+    skill_id integer NOT NULL,
+    ranks numeric(4,1) DEFAULT 0 NOT NULL,
+    id integer NOT NULL,
+    sub_skill text
+);
+
+
+ALTER TABLE public.adventurer_skills OWNER TO postgres;
+
+--
+-- TOC entry 228 (class 1259 OID 38882)
+-- Name: adventurer_skills_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurer_skills_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurer_skills_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4148 (class 0 OID 0)
+-- Dependencies: 228
+-- Name: adventurer_skills_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurer_skills_id_seq OWNED BY public.adventurer_skills.id;
+
+
+--
+-- TOC entry 229 (class 1259 OID 38883)
+-- Name: adventurer_spell_slots; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_spell_slots (
+    id integer NOT NULL,
+    adventurer_id integer NOT NULL,
+    spell_level integer NOT NULL,
+    slots_used integer DEFAULT 0
+);
+
+
+ALTER TABLE public.adventurer_spell_slots OWNER TO postgres;
+
+--
+-- TOC entry 230 (class 1259 OID 38887)
+-- Name: adventurer_spell_slots_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurer_spell_slots_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurer_spell_slots_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4151 (class 0 OID 0)
+-- Dependencies: 230
+-- Name: adventurer_spell_slots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurer_spell_slots_id_seq OWNED BY public.adventurer_spell_slots.id;
+
+
+--
+-- TOC entry 231 (class 1259 OID 38888)
+-- Name: adventurer_spells; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_spells (
+    id integer NOT NULL,
+    adventurer_id integer,
+    spell_id integer,
+    is_prepared boolean DEFAULT false,
+    is_known boolean DEFAULT true,
+    notes text,
+    prepared_count integer DEFAULT 0
+);
+
+
+ALTER TABLE public.adventurer_spells OWNER TO postgres;
+
+--
+-- TOC entry 232 (class 1259 OID 38896)
+-- Name: adventurer_spells_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurer_spells_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurer_spells_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4154 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: adventurer_spells_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurer_spells_id_seq OWNED BY public.adventurer_spells.id;
+
+
+--
+-- TOC entry 306 (class 1259 OID 39680)
+-- Name: adventurer_weapons; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurer_weapons (
+    id integer NOT NULL,
+    adventurer_id integer NOT NULL,
+    item_id integer NOT NULL,
+    quantity integer DEFAULT 1,
+    is_equipped boolean DEFAULT false,
+    is_masterwork boolean DEFAULT false,
+    enhancement_bonus integer DEFAULT 0,
+    enchantment_ids integer[],
+    custom_name text,
+    notes text
+);
+
+
+ALTER TABLE public.adventurer_weapons OWNER TO postgres;
+
+--
+-- TOC entry 305 (class 1259 OID 39679)
+-- Name: adventurer_weapons_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurer_weapons_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurer_weapons_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4157 (class 0 OID 0)
+-- Dependencies: 305
+-- Name: adventurer_weapons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurer_weapons_id_seq OWNED BY public.adventurer_weapons.id;
+
+
+--
+-- TOC entry 233 (class 1259 OID 38897)
+-- Name: adventurers; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.adventurers (
+    id integer NOT NULL,
+    user_id integer,
+    name text NOT NULL,
+    race_id integer,
+    alignment text,
+    gender text,
+    age integer,
+    height text,
+    weight text,
+    description text,
+    strength integer DEFAULT 10,
+    dexterity integer DEFAULT 10,
+    constitution integer DEFAULT 10,
+    intelligence integer DEFAULT 10,
+    wisdom integer DEFAULT 10,
+    charisma integer DEFAULT 10,
+    hit_points_max integer,
+    hit_points_current integer,
+    experience_points integer DEFAULT 0,
+    money_gp integer DEFAULT 0
+);
+
+
+ALTER TABLE public.adventurers OWNER TO postgres;
+
+--
+-- TOC entry 234 (class 1259 OID 38910)
+-- Name: adventurers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.adventurers_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.adventurers_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4160 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: adventurers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.adventurers_id_seq OWNED BY public.adventurers.id;
+
+
+--
 -- TOC entry 216 (class 1259 OID 38835)
 -- Name: armor_properties; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -217,7 +586,7 @@ CREATE SEQUENCE public.armor_properties_id_seq
 ALTER SEQUENCE public.armor_properties_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4138 (class 0 OID 0)
+-- TOC entry 4163 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: armor_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -256,7 +625,7 @@ CREATE SEQUENCE public.body_slots_id_seq
 ALTER SEQUENCE public.body_slots_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4140 (class 0 OID 0)
+-- TOC entry 4165 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: body_slots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -295,7 +664,7 @@ CREATE SEQUENCE public.bonus_types_id_seq
 ALTER SEQUENCE public.bonus_types_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4142 (class 0 OID 0)
+-- TOC entry 4167 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: bonus_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -345,381 +714,12 @@ CREATE SEQUENCE public.caster_progression_id_seq
 ALTER SEQUENCE public.caster_progression_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4144 (class 0 OID 0)
+-- TOC entry 4169 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: caster_progression_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.caster_progression_id_seq OWNED BY public.caster_progression.id;
-
-
---
--- TOC entry 311 (class 1259 OID 39703)
--- Name: character_armor; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_armor (
-    id integer NOT NULL,
-    character_id integer NOT NULL,
-    item_id integer NOT NULL,
-    quantity integer DEFAULT 1,
-    is_equipped boolean DEFAULT false,
-    is_masterwork boolean DEFAULT false,
-    enhancement_bonus integer DEFAULT 0,
-    enchantment_ids integer[],
-    custom_name text,
-    notes text
-);
-
-
-ALTER TABLE public.character_armor OWNER TO postgres;
-
---
--- TOC entry 310 (class 1259 OID 39702)
--- Name: character_armor_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.character_armor_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.character_armor_id_seq OWNER TO postgres;
-
---
--- TOC entry 4146 (class 0 OID 0)
--- Dependencies: 310
--- Name: character_armor_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.character_armor_id_seq OWNED BY public.character_armor.id;
-
-
---
--- TOC entry 224 (class 1259 OID 38857)
--- Name: character_classes; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_classes (
-    character_id integer NOT NULL,
-    class_id integer NOT NULL,
-    class_level integer NOT NULL
-);
-
-
-ALTER TABLE public.character_classes OWNER TO postgres;
-
---
--- TOC entry 225 (class 1259 OID 38860)
--- Name: character_feats; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_feats (
-    character_id integer NOT NULL,
-    feat_id integer NOT NULL,
-    note text,
-    id integer NOT NULL
-);
-
-
-ALTER TABLE public.character_feats OWNER TO postgres;
-
---
--- TOC entry 226 (class 1259 OID 38865)
--- Name: character_feats_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.character_feats_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.character_feats_id_seq OWNER TO postgres;
-
---
--- TOC entry 4150 (class 0 OID 0)
--- Dependencies: 226
--- Name: character_feats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.character_feats_id_seq OWNED BY public.character_feats.id;
-
-
---
--- TOC entry 313 (class 1259 OID 39726)
--- Name: character_gear; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_gear (
-    id integer NOT NULL,
-    character_id integer NOT NULL,
-    item_id integer NOT NULL,
-    quantity integer DEFAULT 1,
-    is_equipped boolean DEFAULT false,
-    custom_name text,
-    notes text
-);
-
-
-ALTER TABLE public.character_gear OWNER TO postgres;
-
---
--- TOC entry 312 (class 1259 OID 39725)
--- Name: character_gear_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.character_gear_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.character_gear_id_seq OWNER TO postgres;
-
---
--- TOC entry 4153 (class 0 OID 0)
--- Dependencies: 312
--- Name: character_gear_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.character_gear_id_seq OWNED BY public.character_gear.id;
-
-
---
--- TOC entry 227 (class 1259 OID 38876)
--- Name: character_skills; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_skills (
-    character_id integer NOT NULL,
-    skill_id integer NOT NULL,
-    ranks numeric(4,1) DEFAULT 0 NOT NULL,
-    id integer NOT NULL,
-    sub_skill text
-);
-
-
-ALTER TABLE public.character_skills OWNER TO postgres;
-
---
--- TOC entry 228 (class 1259 OID 38882)
--- Name: character_skills_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.character_skills_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.character_skills_id_seq OWNER TO postgres;
-
---
--- TOC entry 4156 (class 0 OID 0)
--- Dependencies: 228
--- Name: character_skills_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.character_skills_id_seq OWNED BY public.character_skills.id;
-
-
---
--- TOC entry 229 (class 1259 OID 38883)
--- Name: character_spell_slots; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_spell_slots (
-    id integer NOT NULL,
-    character_id integer NOT NULL,
-    spell_level integer NOT NULL,
-    slots_used integer DEFAULT 0
-);
-
-
-ALTER TABLE public.character_spell_slots OWNER TO postgres;
-
---
--- TOC entry 230 (class 1259 OID 38887)
--- Name: character_spell_slots_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.character_spell_slots_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.character_spell_slots_id_seq OWNER TO postgres;
-
---
--- TOC entry 4159 (class 0 OID 0)
--- Dependencies: 230
--- Name: character_spell_slots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.character_spell_slots_id_seq OWNED BY public.character_spell_slots.id;
-
-
---
--- TOC entry 231 (class 1259 OID 38888)
--- Name: character_spells; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_spells (
-    id integer NOT NULL,
-    character_id integer,
-    spell_id integer,
-    is_prepared boolean DEFAULT false,
-    is_known boolean DEFAULT true,
-    notes text,
-    prepared_count integer DEFAULT 0
-);
-
-
-ALTER TABLE public.character_spells OWNER TO postgres;
-
---
--- TOC entry 232 (class 1259 OID 38896)
--- Name: character_spells_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.character_spells_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.character_spells_id_seq OWNER TO postgres;
-
---
--- TOC entry 4162 (class 0 OID 0)
--- Dependencies: 232
--- Name: character_spells_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.character_spells_id_seq OWNED BY public.character_spells.id;
-
-
---
--- TOC entry 309 (class 1259 OID 39680)
--- Name: character_weapons; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.character_weapons (
-    id integer NOT NULL,
-    character_id integer NOT NULL,
-    item_id integer NOT NULL,
-    quantity integer DEFAULT 1,
-    is_equipped boolean DEFAULT false,
-    is_masterwork boolean DEFAULT false,
-    enhancement_bonus integer DEFAULT 0,
-    enchantment_ids integer[],
-    custom_name text,
-    notes text
-);
-
-
-ALTER TABLE public.character_weapons OWNER TO postgres;
-
---
--- TOC entry 308 (class 1259 OID 39679)
--- Name: character_weapons_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.character_weapons_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.character_weapons_id_seq OWNER TO postgres;
-
---
--- TOC entry 4165 (class 0 OID 0)
--- Dependencies: 308
--- Name: character_weapons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.character_weapons_id_seq OWNED BY public.character_weapons.id;
-
-
---
--- TOC entry 233 (class 1259 OID 38897)
--- Name: characters; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.characters (
-    id integer NOT NULL,
-    user_id integer,
-    name text NOT NULL,
-    race_id integer,
-    alignment text,
-    gender text,
-    age integer,
-    height text,
-    weight text,
-    description text,
-    strength integer DEFAULT 10,
-    dexterity integer DEFAULT 10,
-    constitution integer DEFAULT 10,
-    intelligence integer DEFAULT 10,
-    wisdom integer DEFAULT 10,
-    charisma integer DEFAULT 10,
-    hit_points_max integer,
-    hit_points_current integer,
-    experience_points integer DEFAULT 0,
-    money_gp integer DEFAULT 0
-);
-
-
-ALTER TABLE public.characters OWNER TO postgres;
-
---
--- TOC entry 234 (class 1259 OID 38910)
--- Name: characters_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.characters_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.characters_id_seq OWNER TO postgres;
-
---
--- TOC entry 4168 (class 0 OID 0)
--- Dependencies: 234
--- Name: characters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.characters_id_seq OWNED BY public.characters.id;
 
 
 --
@@ -2037,13 +2037,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 315 (class 1259 OID 39751)
--- Name: view_character_armor; Type: VIEW; Schema: public; Owner: postgres
+-- TOC entry 312 (class 1259 OID 39766)
+-- Name: view_adventurer_armor; Type: VIEW; Schema: public; Owner: postgres
 --
 
-CREATE VIEW public.view_character_armor AS
+CREATE VIEW public.view_adventurer_armor AS
  SELECT ca.id,
-    ca.character_id,
+    ca.adventurer_id,
     ca.is_equipped,
     ca.quantity,
     ca.custom_name,
@@ -2057,40 +2057,40 @@ CREATE VIEW public.view_character_armor AS
     i.image_url,
     it.name AS item_type,
     bs.name AS body_slot
-   FROM (((public.character_armor ca
+   FROM (((public.adventurer_armor ca
      JOIN public.items i ON ((ca.item_id = i.id)))
      JOIN public.item_types it ON ((i.item_type_id = it.id)))
      LEFT JOIN public.body_slots bs ON ((i.body_slot_id = bs.id)));
 
 
-ALTER VIEW public.view_character_armor OWNER TO postgres;
+ALTER VIEW public.view_adventurer_armor OWNER TO postgres;
 
 --
--- TOC entry 298 (class 1259 OID 39120)
--- Name: view_character_feats; Type: VIEW; Schema: public; Owner: postgres
+-- TOC entry 314 (class 1259 OID 39776)
+-- Name: view_adventurer_feats; Type: VIEW; Schema: public; Owner: postgres
 --
 
-CREATE VIEW public.view_character_feats AS
+CREATE VIEW public.view_adventurer_feats AS
  SELECT cf.id,
-    cf.character_id,
+    cf.adventurer_id,
     cf.note,
     f.name AS feat_name,
     f.feat_type,
     f.benefit
-   FROM (public.character_feats cf
+   FROM (public.adventurer_feats cf
      JOIN public.feats f ON ((cf.feat_id = f.id)));
 
 
-ALTER VIEW public.view_character_feats OWNER TO postgres;
+ALTER VIEW public.view_adventurer_feats OWNER TO postgres;
 
 --
--- TOC entry 316 (class 1259 OID 39756)
--- Name: view_character_gear; Type: VIEW; Schema: public; Owner: postgres
+-- TOC entry 313 (class 1259 OID 39771)
+-- Name: view_adventurer_gear; Type: VIEW; Schema: public; Owner: postgres
 --
 
-CREATE VIEW public.view_character_gear AS
+CREATE VIEW public.view_adventurer_gear AS
  SELECT cg.id,
-    cg.character_id,
+    cg.adventurer_id,
     cg.is_equipped,
     cg.quantity,
     cg.custom_name,
@@ -2101,42 +2101,42 @@ CREATE VIEW public.view_character_gear AS
     i.image_url,
     it.name AS item_type,
     bs.name AS body_slot
-   FROM (((public.character_gear cg
+   FROM (((public.adventurer_gear cg
      JOIN public.items i ON ((cg.item_id = i.id)))
      JOIN public.item_types it ON ((i.item_type_id = it.id)))
      LEFT JOIN public.body_slots bs ON ((i.body_slot_id = bs.id)));
 
 
-ALTER VIEW public.view_character_gear OWNER TO postgres;
+ALTER VIEW public.view_adventurer_gear OWNER TO postgres;
 
 --
--- TOC entry 299 (class 1259 OID 39129)
--- Name: view_character_skills; Type: VIEW; Schema: public; Owner: postgres
+-- TOC entry 315 (class 1259 OID 39780)
+-- Name: view_adventurer_skills; Type: VIEW; Schema: public; Owner: postgres
 --
 
-CREATE VIEW public.view_character_skills AS
+CREATE VIEW public.view_adventurer_skills AS
  SELECT cs.id,
-    cs.character_id,
+    cs.adventurer_id,
     cs.ranks,
     cs.sub_skill,
     s.name AS skill_name,
     s.key_attribute,
     s.trained_only,
     s.armor_check_penalty
-   FROM (public.character_skills cs
+   FROM (public.adventurer_skills cs
      JOIN public.skills s ON ((cs.skill_id = s.id)));
 
 
-ALTER VIEW public.view_character_skills OWNER TO postgres;
+ALTER VIEW public.view_adventurer_skills OWNER TO postgres;
 
 --
--- TOC entry 300 (class 1259 OID 39133)
--- Name: view_character_spells; Type: VIEW; Schema: public; Owner: postgres
+-- TOC entry 316 (class 1259 OID 39784)
+-- Name: view_adventurer_spells; Type: VIEW; Schema: public; Owner: postgres
 --
 
-CREATE VIEW public.view_character_spells AS
+CREATE VIEW public.view_adventurer_spells AS
  SELECT cs.id,
-    cs.character_id,
+    cs.adventurer_id,
     cs.is_prepared,
     cs.prepared_count,
     cs.is_known,
@@ -2145,20 +2145,20 @@ CREATE VIEW public.view_character_spells AS
     s.school,
     s.subschool,
     s.description
-   FROM (public.character_spells cs
+   FROM (public.adventurer_spells cs
      JOIN public.spells s ON ((cs.spell_id = s.id)));
 
 
-ALTER VIEW public.view_character_spells OWNER TO postgres;
+ALTER VIEW public.view_adventurer_spells OWNER TO postgres;
 
 --
--- TOC entry 314 (class 1259 OID 39746)
--- Name: view_character_weapons; Type: VIEW; Schema: public; Owner: postgres
+-- TOC entry 311 (class 1259 OID 39761)
+-- Name: view_adventurer_weapons; Type: VIEW; Schema: public; Owner: postgres
 --
 
-CREATE VIEW public.view_character_weapons AS
+CREATE VIEW public.view_adventurer_weapons AS
  SELECT cw.id,
-    cw.character_id,
+    cw.adventurer_id,
     cw.is_equipped,
     cw.quantity,
     cw.custom_name,
@@ -2172,16 +2172,16 @@ CREATE VIEW public.view_character_weapons AS
     i.image_url,
     it.name AS item_type,
     bs.name AS body_slot
-   FROM (((public.character_weapons cw
+   FROM (((public.adventurer_weapons cw
      JOIN public.items i ON ((cw.item_id = i.id)))
      JOIN public.item_types it ON ((i.item_type_id = it.id)))
      LEFT JOIN public.body_slots bs ON ((i.body_slot_id = bs.id)));
 
 
-ALTER VIEW public.view_character_weapons OWNER TO postgres;
+ALTER VIEW public.view_adventurer_weapons OWNER TO postgres;
 
 --
--- TOC entry 301 (class 1259 OID 39138)
+-- TOC entry 298 (class 1259 OID 39138)
 -- Name: view_feat_details; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -2214,7 +2214,7 @@ CREATE VIEW public.view_feat_details AS
 ALTER VIEW public.view_feat_details OWNER TO postgres;
 
 --
--- TOC entry 302 (class 1259 OID 39143)
+-- TOC entry 299 (class 1259 OID 39143)
 -- Name: weapon_properties; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -2232,7 +2232,7 @@ CREATE TABLE public.weapon_properties (
 ALTER TABLE public.weapon_properties OWNER TO postgres;
 
 --
--- TOC entry 303 (class 1259 OID 39146)
+-- TOC entry 300 (class 1259 OID 39146)
 -- Name: view_item_details; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -2275,7 +2275,7 @@ CREATE VIEW public.view_item_details AS
 ALTER VIEW public.view_item_details OWNER TO postgres;
 
 --
--- TOC entry 304 (class 1259 OID 39151)
+-- TOC entry 301 (class 1259 OID 39151)
 -- Name: view_monster_details; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -2297,7 +2297,7 @@ CREATE VIEW public.view_monster_details AS
 ALTER VIEW public.view_monster_details OWNER TO postgres;
 
 --
--- TOC entry 305 (class 1259 OID 39156)
+-- TOC entry 302 (class 1259 OID 39156)
 -- Name: view_spell_details; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -2336,7 +2336,7 @@ CREATE VIEW public.view_spell_details AS
 ALTER VIEW public.view_spell_details OWNER TO postgres;
 
 --
--- TOC entry 306 (class 1259 OID 39161)
+-- TOC entry 303 (class 1259 OID 39161)
 -- Name: weapon_damage_type; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -2349,7 +2349,7 @@ CREATE TABLE public.weapon_damage_type (
 ALTER TABLE public.weapon_damage_type OWNER TO postgres;
 
 --
--- TOC entry 307 (class 1259 OID 39164)
+-- TOC entry 304 (class 1259 OID 39164)
 -- Name: weapon_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -2366,11 +2366,75 @@ ALTER SEQUENCE public.weapon_properties_id_seq OWNER TO postgres;
 
 --
 -- TOC entry 4245 (class 0 OID 0)
--- Dependencies: 307
+-- Dependencies: 304
 -- Name: weapon_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.weapon_properties_id_seq OWNED BY public.weapon_properties.id;
+
+
+--
+-- TOC entry 3648 (class 2604 OID 39706)
+-- Name: adventurer_armor id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurer_armor ALTER COLUMN id SET DEFAULT nextval('public.adventurer_armor_id_seq'::regclass);
+
+
+--
+-- TOC entry 3567 (class 2604 OID 39169)
+-- Name: adventurer_feats id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurer_feats ALTER COLUMN id SET DEFAULT nextval('public.adventurer_feats_id_seq'::regclass);
+
+
+--
+-- TOC entry 3653 (class 2604 OID 39729)
+-- Name: adventurer_gear id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurer_gear ALTER COLUMN id SET DEFAULT nextval('public.adventurer_gear_id_seq'::regclass);
+
+
+--
+-- TOC entry 3569 (class 2604 OID 39171)
+-- Name: adventurer_skills id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurer_skills ALTER COLUMN id SET DEFAULT nextval('public.adventurer_skills_id_seq'::regclass);
+
+
+--
+-- TOC entry 3570 (class 2604 OID 39172)
+-- Name: adventurer_spell_slots id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurer_spell_slots ALTER COLUMN id SET DEFAULT nextval('public.adventurer_spell_slots_id_seq'::regclass);
+
+
+--
+-- TOC entry 3572 (class 2604 OID 39173)
+-- Name: adventurer_spells id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurer_spells ALTER COLUMN id SET DEFAULT nextval('public.adventurer_spells_id_seq'::regclass);
+
+
+--
+-- TOC entry 3643 (class 2604 OID 39683)
+-- Name: adventurer_weapons id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurer_weapons ALTER COLUMN id SET DEFAULT nextval('public.adventurer_weapons_id_seq'::regclass);
+
+
+--
+-- TOC entry 3576 (class 2604 OID 39174)
+-- Name: adventurers id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.adventurers ALTER COLUMN id SET DEFAULT nextval('public.adventurers_id_seq'::regclass);
 
 
 --
@@ -2403,70 +2467,6 @@ ALTER TABLE ONLY public.bonus_types ALTER COLUMN id SET DEFAULT nextval('public.
 --
 
 ALTER TABLE ONLY public.caster_progression ALTER COLUMN id SET DEFAULT nextval('public.caster_progression_id_seq'::regclass);
-
-
---
--- TOC entry 3648 (class 2604 OID 39706)
--- Name: character_armor id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.character_armor ALTER COLUMN id SET DEFAULT nextval('public.character_armor_id_seq'::regclass);
-
-
---
--- TOC entry 3567 (class 2604 OID 39169)
--- Name: character_feats id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.character_feats ALTER COLUMN id SET DEFAULT nextval('public.character_feats_id_seq'::regclass);
-
-
---
--- TOC entry 3653 (class 2604 OID 39729)
--- Name: character_gear id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.character_gear ALTER COLUMN id SET DEFAULT nextval('public.character_gear_id_seq'::regclass);
-
-
---
--- TOC entry 3569 (class 2604 OID 39171)
--- Name: character_skills id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.character_skills ALTER COLUMN id SET DEFAULT nextval('public.character_skills_id_seq'::regclass);
-
-
---
--- TOC entry 3570 (class 2604 OID 39172)
--- Name: character_spell_slots id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.character_spell_slots ALTER COLUMN id SET DEFAULT nextval('public.character_spell_slots_id_seq'::regclass);
-
-
---
--- TOC entry 3572 (class 2604 OID 39173)
--- Name: character_spells id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.character_spells ALTER COLUMN id SET DEFAULT nextval('public.character_spells_id_seq'::regclass);
-
-
---
--- TOC entry 3643 (class 2604 OID 39683)
--- Name: character_weapons id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.character_weapons ALTER COLUMN id SET DEFAULT nextval('public.character_weapons_id_seq'::regclass);
-
-
---
--- TOC entry 3576 (class 2604 OID 39174)
--- Name: characters id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.characters ALTER COLUMN id SET DEFAULT nextval('public.characters_id_seq'::regclass);
 
 
 --
@@ -2702,6 +2702,116 @@ ALTER TABLE ONLY public.weapon_properties ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- TOC entry 4127 (class 0 OID 39703)
+-- Dependencies: 308
+-- Data for Name: adventurer_armor; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_armor (id, adventurer_id, item_id, quantity, is_equipped, is_masterwork, enhancement_bonus, enchantment_ids, custom_name, notes) FROM stdin;
+1	3	3	1	t	f	0	\N	\N	\N
+\.
+
+
+--
+-- TOC entry 4047 (class 0 OID 38857)
+-- Dependencies: 224
+-- Data for Name: adventurer_classes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_classes (adventurer_id, class_id, class_level) FROM stdin;
+3	1	1
+4	2	1
+6	1	1
+\.
+
+
+--
+-- TOC entry 4048 (class 0 OID 38860)
+-- Dependencies: 225
+-- Data for Name: adventurer_feats; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_feats (adventurer_id, feat_id, note, id) FROM stdin;
+3	1	\N	1
+4	2	Evocation	2
+6	1	\N	3
+\.
+
+
+--
+-- TOC entry 4129 (class 0 OID 39726)
+-- Dependencies: 310
+-- Data for Name: adventurer_gear; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_gear (id, adventurer_id, item_id, quantity, is_equipped, custom_name, notes) FROM stdin;
+1	4	6	5	f	\N	\N
+2	4	5	1	f	\N	\N
+3	3	5	1	f	\N	\N
+\.
+
+
+--
+-- TOC entry 4050 (class 0 OID 38876)
+-- Dependencies: 227
+-- Data for Name: adventurer_skills; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_skills (adventurer_id, skill_id, ranks, id, sub_skill) FROM stdin;
+4	10	4.0	1	\N
+4	9	4.0	2	\N
+6	10	4.0	3	\N
+\.
+
+
+--
+-- TOC entry 4052 (class 0 OID 38883)
+-- Dependencies: 229
+-- Data for Name: adventurer_spell_slots; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_spell_slots (id, adventurer_id, spell_level, slots_used) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4054 (class 0 OID 38888)
+-- Dependencies: 231
+-- Data for Name: adventurer_spells; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_spells (id, adventurer_id, spell_id, is_prepared, is_known, notes, prepared_count) FROM stdin;
+1	4	5	t	t	\N	2
+\.
+
+
+--
+-- TOC entry 4125 (class 0 OID 39680)
+-- Dependencies: 306
+-- Data for Name: adventurer_weapons; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurer_weapons (id, adventurer_id, item_id, quantity, is_equipped, is_masterwork, enhancement_bonus, enchantment_ids, custom_name, notes) FROM stdin;
+1	6	1	1	f	f	0	\N	\N	\N
+2	4	2	1	t	f	0	\N	\N	\N
+3	3	1	1	t	f	0	\N	\N	\N
+\.
+
+
+--
+-- TOC entry 4056 (class 0 OID 38897)
+-- Dependencies: 233
+-- Data for Name: adventurers; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.adventurers (id, user_id, name, race_id, alignment, gender, age, height, weight, description, strength, dexterity, constitution, intelligence, wisdom, charisma, hit_points_max, hit_points_current, experience_points, money_gp) FROM stdin;
+3	3	Valeros	17	Neutral Good	Male	25	6'0"	200 lbs	A brave fighter with a love for ale.	16	14	14	10	10	10	12	12	0	15
+4	3	Ezren	17	Lawful Neutral	Male	45	5'10"	170 lbs	A scholar seeking knowledge.	10	12	14	16	12	10	6	6	0	25
+6	7	Valeros	17	Neutral Good	Male	25	6'0"	200 lbs	A brave fighter with a heart of gold.	18	14	15	10	12	13	12	12	0	0
+\.
+
+
+--
 -- TOC entry 4039 (class 0 OID 38835)
 -- Dependencies: 216
 -- Data for Name: armor_properties; Type: TABLE DATA; Schema: public; Owner: postgres
@@ -2770,116 +2880,6 @@ COPY public.bonus_types (id, name, description) FROM stdin;
 
 COPY public.caster_progression (id, class_id, level, cantrips, first_grade, second_grade, third_grade, fourth_grade, fifth_grade, sixth_grade, seventh_grade, eighth_grade, ninth_grade) FROM stdin;
 3	2	1	3	1	\N	\N	\N	\N	\N	\N	\N	\N
-\.
-
-
---
--- TOC entry 4127 (class 0 OID 39703)
--- Dependencies: 311
--- Data for Name: character_armor; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_armor (id, character_id, item_id, quantity, is_equipped, is_masterwork, enhancement_bonus, enchantment_ids, custom_name, notes) FROM stdin;
-1	3	3	1	t	f	0	\N	\N	\N
-\.
-
-
---
--- TOC entry 4047 (class 0 OID 38857)
--- Dependencies: 224
--- Data for Name: character_classes; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_classes (character_id, class_id, class_level) FROM stdin;
-3	1	1
-4	2	1
-6	1	1
-\.
-
-
---
--- TOC entry 4048 (class 0 OID 38860)
--- Dependencies: 225
--- Data for Name: character_feats; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_feats (character_id, feat_id, note, id) FROM stdin;
-3	1	\N	1
-4	2	Evocation	2
-6	1	\N	3
-\.
-
-
---
--- TOC entry 4129 (class 0 OID 39726)
--- Dependencies: 313
--- Data for Name: character_gear; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_gear (id, character_id, item_id, quantity, is_equipped, custom_name, notes) FROM stdin;
-1	4	6	5	f	\N	\N
-2	4	5	1	f	\N	\N
-3	3	5	1	f	\N	\N
-\.
-
-
---
--- TOC entry 4050 (class 0 OID 38876)
--- Dependencies: 227
--- Data for Name: character_skills; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_skills (character_id, skill_id, ranks, id, sub_skill) FROM stdin;
-4	10	4.0	1	\N
-4	9	4.0	2	\N
-6	10	4.0	3	\N
-\.
-
-
---
--- TOC entry 4052 (class 0 OID 38883)
--- Dependencies: 229
--- Data for Name: character_spell_slots; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_spell_slots (id, character_id, spell_level, slots_used) FROM stdin;
-\.
-
-
---
--- TOC entry 4054 (class 0 OID 38888)
--- Dependencies: 231
--- Data for Name: character_spells; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_spells (id, character_id, spell_id, is_prepared, is_known, notes, prepared_count) FROM stdin;
-1	4	5	t	t	\N	2
-\.
-
-
---
--- TOC entry 4125 (class 0 OID 39680)
--- Dependencies: 309
--- Data for Name: character_weapons; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.character_weapons (id, character_id, item_id, quantity, is_equipped, is_masterwork, enhancement_bonus, enchantment_ids, custom_name, notes) FROM stdin;
-1	6	1	1	f	f	0	\N	\N	\N
-2	4	2	1	t	f	0	\N	\N	\N
-3	3	1	1	t	f	0	\N	\N	\N
-\.
-
-
---
--- TOC entry 4056 (class 0 OID 38897)
--- Dependencies: 233
--- Data for Name: characters; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.characters (id, user_id, name, race_id, alignment, gender, age, height, weight, description, strength, dexterity, constitution, intelligence, wisdom, charisma, hit_points_max, hit_points_current, experience_points, money_gp) FROM stdin;
-3	3	Valeros	17	Neutral Good	Male	25	6'0"	200 lbs	A brave fighter with a love for ale.	16	14	14	10	10	10	12	12	0	15
-4	3	Ezren	17	Lawful Neutral	Male	45	5'10"	170 lbs	A scholar seeking knowledge.	10	12	14	16	12	10	6	6	0	25
-6	7	Valeros	17	Neutral Good	Male	25	6'0"	200 lbs	A brave fighter with a heart of gold.	18	14	15	10	12	13	12	12	0	0
 \.
 
 
@@ -3445,7 +3445,7 @@ COPY public.users (id, username, password_hash, email, created_at, last_login, r
 
 --
 -- TOC entry 4122 (class 0 OID 39161)
--- Dependencies: 306
+-- Dependencies: 303
 -- Data for Name: weapon_damage_type; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -3457,7 +3457,7 @@ COPY public.weapon_damage_type (weapon_properties_id, damage_type_id) FROM stdin
 
 --
 -- TOC entry 4121 (class 0 OID 39143)
--- Dependencies: 302
+-- Dependencies: 299
 -- Data for Name: weapon_properties; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -3469,6 +3469,78 @@ COPY public.weapon_properties (id, damage_id, critical_id, range, handedness, we
 
 --
 -- TOC entry 4246 (class 0 OID 0)
+-- Dependencies: 307
+-- Name: adventurer_armor_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurer_armor_id_seq', 1, true);
+
+
+--
+-- TOC entry 4247 (class 0 OID 0)
+-- Dependencies: 226
+-- Name: adventurer_feats_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurer_feats_id_seq', 3, true);
+
+
+--
+-- TOC entry 4248 (class 0 OID 0)
+-- Dependencies: 309
+-- Name: adventurer_gear_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurer_gear_id_seq', 3, true);
+
+
+--
+-- TOC entry 4249 (class 0 OID 0)
+-- Dependencies: 228
+-- Name: adventurer_skills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurer_skills_id_seq', 3, true);
+
+
+--
+-- TOC entry 4250 (class 0 OID 0)
+-- Dependencies: 230
+-- Name: adventurer_spell_slots_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurer_spell_slots_id_seq', 1, false);
+
+
+--
+-- TOC entry 4251 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: adventurer_spells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurer_spells_id_seq', 1, true);
+
+
+--
+-- TOC entry 4252 (class 0 OID 0)
+-- Dependencies: 305
+-- Name: adventurer_weapons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurer_weapons_id_seq', 3, true);
+
+
+--
+-- TOC entry 4253 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: adventurers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.adventurers_id_seq', 6, true);
+
+
+--
+-- TOC entry 4254 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: armor_properties_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -3477,7 +3549,7 @@ SELECT pg_catalog.setval('public.armor_properties_id_seq', 2, true);
 
 
 --
--- TOC entry 4247 (class 0 OID 0)
+-- TOC entry 4255 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: body_slots_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -3486,7 +3558,7 @@ SELECT pg_catalog.setval('public.body_slots_id_seq', 14, true);
 
 
 --
--- TOC entry 4248 (class 0 OID 0)
+-- TOC entry 4256 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: bonus_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -3495,84 +3567,12 @@ SELECT pg_catalog.setval('public.bonus_types_id_seq', 15, true);
 
 
 --
--- TOC entry 4249 (class 0 OID 0)
+-- TOC entry 4257 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: caster_progression_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.caster_progression_id_seq', 3, true);
-
-
---
--- TOC entry 4250 (class 0 OID 0)
--- Dependencies: 310
--- Name: character_armor_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.character_armor_id_seq', 1, true);
-
-
---
--- TOC entry 4251 (class 0 OID 0)
--- Dependencies: 226
--- Name: character_feats_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.character_feats_id_seq', 3, true);
-
-
---
--- TOC entry 4252 (class 0 OID 0)
--- Dependencies: 312
--- Name: character_gear_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.character_gear_id_seq', 3, true);
-
-
---
--- TOC entry 4253 (class 0 OID 0)
--- Dependencies: 228
--- Name: character_skills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.character_skills_id_seq', 3, true);
-
-
---
--- TOC entry 4254 (class 0 OID 0)
--- Dependencies: 230
--- Name: character_spell_slots_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.character_spell_slots_id_seq', 1, false);
-
-
---
--- TOC entry 4255 (class 0 OID 0)
--- Dependencies: 232
--- Name: character_spells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.character_spells_id_seq', 1, true);
-
-
---
--- TOC entry 4256 (class 0 OID 0)
--- Dependencies: 308
--- Name: character_weapons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.character_weapons_id_seq', 3, true);
-
-
---
--- TOC entry 4257 (class 0 OID 0)
--- Dependencies: 234
--- Name: characters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.characters_id_seq', 6, true);
 
 
 --
@@ -3838,7 +3838,7 @@ SELECT pg_catalog.setval('public.users_id_seq', 7, true);
 
 --
 -- TOC entry 4287 (class 0 OID 0)
--- Dependencies: 307
+-- Dependencies: 304
 -- Name: weapon_properties_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -3910,82 +3910,82 @@ ALTER TABLE ONLY public.caster_progression
 
 --
 -- TOC entry 3813 (class 2606 OID 39714)
--- Name: character_armor character_armor_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_armor character_armor_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_armor
+ALTER TABLE ONLY public.adventurer_armor
     ADD CONSTRAINT character_armor_pkey PRIMARY KEY (id);
 
 
 --
 -- TOC entry 3674 (class 2606 OID 39244)
--- Name: character_classes character_classes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_classes character_classes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_classes
-    ADD CONSTRAINT character_classes_pkey PRIMARY KEY (character_id, class_id);
+ALTER TABLE ONLY public.adventurer_classes
+    ADD CONSTRAINT character_classes_pkey PRIMARY KEY (adventurer_id, class_id);
 
 
 --
 -- TOC entry 3677 (class 2606 OID 39246)
--- Name: character_feats character_feats_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_feats character_feats_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_feats
+ALTER TABLE ONLY public.adventurer_feats
     ADD CONSTRAINT character_feats_pkey PRIMARY KEY (id);
 
 
 --
 -- TOC entry 3815 (class 2606 OID 39735)
--- Name: character_gear character_gear_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_gear character_gear_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_gear
+ALTER TABLE ONLY public.adventurer_gear
     ADD CONSTRAINT character_gear_pkey PRIMARY KEY (id);
 
 
 --
 -- TOC entry 3680 (class 2606 OID 39250)
--- Name: character_skills character_skills_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_skills character_skills_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_skills
+ALTER TABLE ONLY public.adventurer_skills
     ADD CONSTRAINT character_skills_pkey PRIMARY KEY (id);
 
 
 --
 -- TOC entry 3683 (class 2606 OID 39252)
--- Name: character_spell_slots character_spell_slots_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_spell_slots character_spell_slots_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_spell_slots
+ALTER TABLE ONLY public.adventurer_spell_slots
     ADD CONSTRAINT character_spell_slots_pkey PRIMARY KEY (id);
 
 
 --
 -- TOC entry 3687 (class 2606 OID 39254)
--- Name: character_spells character_spells_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_spells character_spells_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_spells
+ALTER TABLE ONLY public.adventurer_spells
     ADD CONSTRAINT character_spells_pkey PRIMARY KEY (id);
 
 
 --
 -- TOC entry 3811 (class 2606 OID 39691)
--- Name: character_weapons character_weapons_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_weapons character_weapons_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_weapons
+ALTER TABLE ONLY public.adventurer_weapons
     ADD CONSTRAINT character_weapons_pkey PRIMARY KEY (id);
 
 
 --
 -- TOC entry 3690 (class 2606 OID 39256)
--- Name: characters characters_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurers characters_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.characters
+ALTER TABLE ONLY public.adventurers
     ADD CONSTRAINT characters_pkey PRIMARY KEY (id);
 
 
@@ -4396,11 +4396,11 @@ ALTER TABLE ONLY public.spells
 
 --
 -- TOC entry 3685 (class 2606 OID 39348)
--- Name: character_spell_slots unique_char_slot_level; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_spell_slots unique_char_slot_level; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_spell_slots
-    ADD CONSTRAINT unique_char_slot_level UNIQUE (character_id, spell_level);
+ALTER TABLE ONLY public.adventurer_spell_slots
+    ADD CONSTRAINT unique_char_slot_level UNIQUE (adventurer_id, spell_level);
 
 
 --
@@ -4453,7 +4453,7 @@ ALTER TABLE ONLY public.weapon_properties
 -- Name: idx_character_classes_char_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_character_classes_char_id ON public.character_classes USING btree (character_id);
+CREATE INDEX idx_character_classes_char_id ON public.adventurer_classes USING btree (adventurer_id);
 
 
 --
@@ -4461,7 +4461,7 @@ CREATE INDEX idx_character_classes_char_id ON public.character_classes USING btr
 -- Name: idx_character_feats_char_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_character_feats_char_id ON public.character_feats USING btree (character_id);
+CREATE INDEX idx_character_feats_char_id ON public.adventurer_feats USING btree (adventurer_id);
 
 
 --
@@ -4469,7 +4469,7 @@ CREATE INDEX idx_character_feats_char_id ON public.character_feats USING btree (
 -- Name: idx_character_skills_char_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_character_skills_char_id ON public.character_skills USING btree (character_id);
+CREATE INDEX idx_character_skills_char_id ON public.adventurer_skills USING btree (adventurer_id);
 
 
 --
@@ -4477,7 +4477,7 @@ CREATE INDEX idx_character_skills_char_id ON public.character_skills USING btree
 -- Name: idx_character_spells_char_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_character_spells_char_id ON public.character_spells USING btree (character_id);
+CREATE INDEX idx_character_spells_char_id ON public.adventurer_spells USING btree (adventurer_id);
 
 
 --
@@ -4485,7 +4485,7 @@ CREATE INDEX idx_character_spells_char_id ON public.character_spells USING btree
 -- Name: idx_characters_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_characters_user_id ON public.characters USING btree (user_id);
+CREATE INDEX idx_characters_user_id ON public.adventurers USING btree (user_id);
 
 
 --
@@ -4739,154 +4739,154 @@ ALTER TABLE ONLY public.caster_progression
 
 --
 -- TOC entry 3870 (class 2606 OID 39715)
--- Name: character_armor character_armor_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_armor character_armor_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_armor
-    ADD CONSTRAINT character_armor_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_armor
+    ADD CONSTRAINT character_armor_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3871 (class 2606 OID 39720)
--- Name: character_armor character_armor_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_armor character_armor_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_armor
+ALTER TABLE ONLY public.adventurer_armor
     ADD CONSTRAINT character_armor_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3817 (class 2606 OID 39401)
--- Name: character_classes character_classes_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_classes character_classes_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_classes
-    ADD CONSTRAINT character_classes_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_classes
+    ADD CONSTRAINT character_classes_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3818 (class 2606 OID 39406)
--- Name: character_classes character_classes_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_classes character_classes_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_classes
+ALTER TABLE ONLY public.adventurer_classes
     ADD CONSTRAINT character_classes_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id);
 
 
 --
 -- TOC entry 3819 (class 2606 OID 39411)
--- Name: character_feats character_feats_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_feats character_feats_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_feats
-    ADD CONSTRAINT character_feats_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_feats
+    ADD CONSTRAINT character_feats_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3820 (class 2606 OID 39416)
--- Name: character_feats character_feats_feat_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_feats character_feats_feat_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_feats
+ALTER TABLE ONLY public.adventurer_feats
     ADD CONSTRAINT character_feats_feat_id_fkey FOREIGN KEY (feat_id) REFERENCES public.feats(id);
 
 
 --
 -- TOC entry 3872 (class 2606 OID 39736)
--- Name: character_gear character_gear_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_gear character_gear_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_gear
-    ADD CONSTRAINT character_gear_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_gear
+    ADD CONSTRAINT character_gear_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3873 (class 2606 OID 39741)
--- Name: character_gear character_gear_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_gear character_gear_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_gear
+ALTER TABLE ONLY public.adventurer_gear
     ADD CONSTRAINT character_gear_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3821 (class 2606 OID 39426)
--- Name: character_skills character_skills_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_skills character_skills_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_skills
-    ADD CONSTRAINT character_skills_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_skills
+    ADD CONSTRAINT character_skills_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3822 (class 2606 OID 39431)
--- Name: character_skills character_skills_skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_skills character_skills_skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_skills
+ALTER TABLE ONLY public.adventurer_skills
     ADD CONSTRAINT character_skills_skill_id_fkey FOREIGN KEY (skill_id) REFERENCES public.skills(id);
 
 
 --
 -- TOC entry 3823 (class 2606 OID 39436)
--- Name: character_spell_slots character_spell_slots_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_spell_slots character_spell_slots_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_spell_slots
-    ADD CONSTRAINT character_spell_slots_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_spell_slots
+    ADD CONSTRAINT character_spell_slots_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3824 (class 2606 OID 39441)
--- Name: character_spells character_spells_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_spells character_spells_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_spells
-    ADD CONSTRAINT character_spells_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_spells
+    ADD CONSTRAINT character_spells_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3825 (class 2606 OID 39446)
--- Name: character_spells character_spells_spell_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_spells character_spells_spell_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_spells
+ALTER TABLE ONLY public.adventurer_spells
     ADD CONSTRAINT character_spells_spell_id_fkey FOREIGN KEY (spell_id) REFERENCES public.spells(id);
 
 
 --
 -- TOC entry 3868 (class 2606 OID 39692)
--- Name: character_weapons character_weapons_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_weapons character_weapons_character_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_weapons
-    ADD CONSTRAINT character_weapons_character_id_fkey FOREIGN KEY (character_id) REFERENCES public.characters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.adventurer_weapons
+    ADD CONSTRAINT character_weapons_character_id_fkey FOREIGN KEY (adventurer_id) REFERENCES public.adventurers(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3869 (class 2606 OID 39697)
--- Name: character_weapons character_weapons_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurer_weapons character_weapons_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.character_weapons
+ALTER TABLE ONLY public.adventurer_weapons
     ADD CONSTRAINT character_weapons_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
 
 
 --
 -- TOC entry 3826 (class 2606 OID 39451)
--- Name: characters characters_race_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurers characters_race_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.characters
+ALTER TABLE ONLY public.adventurers
     ADD CONSTRAINT characters_race_id_fkey FOREIGN KEY (race_id) REFERENCES public.races(id);
 
 
 --
 -- TOC entry 3827 (class 2606 OID 39456)
--- Name: characters characters_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: adventurers characters_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.characters
+ALTER TABLE ONLY public.adventurers
     ADD CONSTRAINT characters_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
@@ -5262,6 +5262,165 @@ GRANT USAGE ON SCHEMA public TO dnd_player_role;
 
 --
 -- TOC entry 4137 (class 0 OID 0)
+-- Dependencies: 308
+-- Name: TABLE adventurer_armor; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE public.adventurer_armor TO dnd_player_role;
+
+
+--
+-- TOC entry 4139 (class 0 OID 0)
+-- Dependencies: 307
+-- Name: SEQUENCE adventurer_armor_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurer_armor_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4140 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: TABLE adventurer_classes; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.adventurer_classes TO dnd_app_user;
+GRANT ALL ON TABLE public.adventurer_classes TO dnd_player_role;
+
+
+--
+-- TOC entry 4141 (class 0 OID 0)
+-- Dependencies: 225
+-- Name: TABLE adventurer_feats; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.adventurer_feats TO dnd_app_user;
+GRANT ALL ON TABLE public.adventurer_feats TO dnd_player_role;
+
+
+--
+-- TOC entry 4143 (class 0 OID 0)
+-- Dependencies: 226
+-- Name: SEQUENCE adventurer_feats_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurer_feats_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4144 (class 0 OID 0)
+-- Dependencies: 310
+-- Name: TABLE adventurer_gear; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE public.adventurer_gear TO dnd_player_role;
+
+
+--
+-- TOC entry 4146 (class 0 OID 0)
+-- Dependencies: 309
+-- Name: SEQUENCE adventurer_gear_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurer_gear_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4147 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: TABLE adventurer_skills; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.adventurer_skills TO dnd_app_user;
+GRANT ALL ON TABLE public.adventurer_skills TO dnd_player_role;
+
+
+--
+-- TOC entry 4149 (class 0 OID 0)
+-- Dependencies: 228
+-- Name: SEQUENCE adventurer_skills_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurer_skills_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4150 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: TABLE adventurer_spell_slots; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE public.adventurer_spell_slots TO dnd_player_role;
+GRANT SELECT ON TABLE public.adventurer_spell_slots TO dnd_app_user;
+
+
+--
+-- TOC entry 4152 (class 0 OID 0)
+-- Dependencies: 230
+-- Name: SEQUENCE adventurer_spell_slots_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurer_spell_slots_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4153 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: TABLE adventurer_spells; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.adventurer_spells TO dnd_app_user;
+GRANT ALL ON TABLE public.adventurer_spells TO dnd_player_role;
+
+
+--
+-- TOC entry 4155 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: SEQUENCE adventurer_spells_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurer_spells_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4156 (class 0 OID 0)
+-- Dependencies: 306
+-- Name: TABLE adventurer_weapons; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE public.adventurer_weapons TO dnd_player_role;
+
+
+--
+-- TOC entry 4158 (class 0 OID 0)
+-- Dependencies: 305
+-- Name: SEQUENCE adventurer_weapons_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurer_weapons_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4159 (class 0 OID 0)
+-- Dependencies: 233
+-- Name: TABLE adventurers; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.adventurers TO dnd_app_user;
+GRANT ALL ON TABLE public.adventurers TO dnd_player_role;
+
+
+--
+-- TOC entry 4161 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: SEQUENCE adventurers_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,USAGE ON SEQUENCE public.adventurers_id_seq TO dnd_player_role;
+
+
+--
+-- TOC entry 4162 (class 0 OID 0)
 -- Dependencies: 216
 -- Name: TABLE armor_properties; Type: ACL; Schema: public; Owner: postgres
 --
@@ -5271,7 +5430,7 @@ GRANT SELECT ON TABLE public.armor_properties TO dnd_player_role;
 
 
 --
--- TOC entry 4139 (class 0 OID 0)
+-- TOC entry 4164 (class 0 OID 0)
 -- Dependencies: 218
 -- Name: TABLE body_slots; Type: ACL; Schema: public; Owner: postgres
 --
@@ -5282,7 +5441,7 @@ GRANT SELECT ON TABLE public.body_slots TO dnd_app_user;
 
 
 --
--- TOC entry 4141 (class 0 OID 0)
+-- TOC entry 4166 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: TABLE bonus_types; Type: ACL; Schema: public; Owner: postgres
 --
@@ -5293,172 +5452,13 @@ GRANT SELECT ON TABLE public.bonus_types TO dnd_app_user;
 
 
 --
--- TOC entry 4143 (class 0 OID 0)
+-- TOC entry 4168 (class 0 OID 0)
 -- Dependencies: 222
 -- Name: TABLE caster_progression; Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT SELECT ON TABLE public.caster_progression TO dnd_app_user;
 GRANT SELECT ON TABLE public.caster_progression TO dnd_player_role;
-
-
---
--- TOC entry 4145 (class 0 OID 0)
--- Dependencies: 311
--- Name: TABLE character_armor; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE public.character_armor TO dnd_player_role;
-
-
---
--- TOC entry 4147 (class 0 OID 0)
--- Dependencies: 310
--- Name: SEQUENCE character_armor_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT,USAGE ON SEQUENCE public.character_armor_id_seq TO dnd_player_role;
-
-
---
--- TOC entry 4148 (class 0 OID 0)
--- Dependencies: 224
--- Name: TABLE character_classes; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT ON TABLE public.character_classes TO dnd_app_user;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.character_classes TO dnd_player_role;
-
-
---
--- TOC entry 4149 (class 0 OID 0)
--- Dependencies: 225
--- Name: TABLE character_feats; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT ON TABLE public.character_feats TO dnd_app_user;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.character_feats TO dnd_player_role;
-
-
---
--- TOC entry 4151 (class 0 OID 0)
--- Dependencies: 226
--- Name: SEQUENCE character_feats_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT USAGE ON SEQUENCE public.character_feats_id_seq TO dnd_player_role;
-
-
---
--- TOC entry 4152 (class 0 OID 0)
--- Dependencies: 313
--- Name: TABLE character_gear; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE public.character_gear TO dnd_player_role;
-
-
---
--- TOC entry 4154 (class 0 OID 0)
--- Dependencies: 312
--- Name: SEQUENCE character_gear_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT,USAGE ON SEQUENCE public.character_gear_id_seq TO dnd_player_role;
-
-
---
--- TOC entry 4155 (class 0 OID 0)
--- Dependencies: 227
--- Name: TABLE character_skills; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT ON TABLE public.character_skills TO dnd_app_user;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.character_skills TO dnd_player_role;
-
-
---
--- TOC entry 4157 (class 0 OID 0)
--- Dependencies: 228
--- Name: SEQUENCE character_skills_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT USAGE ON SEQUENCE public.character_skills_id_seq TO dnd_player_role;
-
-
---
--- TOC entry 4158 (class 0 OID 0)
--- Dependencies: 229
--- Name: TABLE character_spell_slots; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE public.character_spell_slots TO dnd_player_role;
-GRANT SELECT ON TABLE public.character_spell_slots TO dnd_app_user;
-
-
---
--- TOC entry 4160 (class 0 OID 0)
--- Dependencies: 230
--- Name: SEQUENCE character_spell_slots_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT USAGE ON SEQUENCE public.character_spell_slots_id_seq TO dnd_player_role;
-
-
---
--- TOC entry 4161 (class 0 OID 0)
--- Dependencies: 231
--- Name: TABLE character_spells; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT ON TABLE public.character_spells TO dnd_app_user;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.character_spells TO dnd_player_role;
-
-
---
--- TOC entry 4163 (class 0 OID 0)
--- Dependencies: 232
--- Name: SEQUENCE character_spells_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT USAGE ON SEQUENCE public.character_spells_id_seq TO dnd_player_role;
-
-
---
--- TOC entry 4164 (class 0 OID 0)
--- Dependencies: 309
--- Name: TABLE character_weapons; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE public.character_weapons TO dnd_player_role;
-
-
---
--- TOC entry 4166 (class 0 OID 0)
--- Dependencies: 308
--- Name: SEQUENCE character_weapons_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT,USAGE ON SEQUENCE public.character_weapons_id_seq TO dnd_player_role;
-
-
---
--- TOC entry 4167 (class 0 OID 0)
--- Dependencies: 233
--- Name: TABLE characters; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT SELECT ON TABLE public.characters TO dnd_app_user;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.characters TO dnd_player_role;
-
-
---
--- TOC entry 4169 (class 0 OID 0)
--- Dependencies: 234
--- Name: SEQUENCE characters_id_seq; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT USAGE ON SEQUENCE public.characters_id_seq TO dnd_player_role;
 
 
 --
@@ -5812,64 +5812,61 @@ GRANT USAGE ON SEQUENCE public.users_id_seq TO dnd_auth_role;
 
 --
 -- TOC entry 4233 (class 0 OID 0)
--- Dependencies: 315
--- Name: TABLE view_character_armor; Type: ACL; Schema: public; Owner: postgres
+-- Dependencies: 312
+-- Name: TABLE view_adventurer_armor; Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT SELECT ON TABLE public.view_character_armor TO dnd_player_role;
+GRANT SELECT ON TABLE public.view_adventurer_armor TO dnd_player_role;
 
 
 --
 -- TOC entry 4234 (class 0 OID 0)
--- Dependencies: 298
--- Name: TABLE view_character_feats; Type: ACL; Schema: public; Owner: postgres
+-- Dependencies: 314
+-- Name: TABLE view_adventurer_feats; Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT SELECT ON TABLE public.view_character_feats TO dnd_player_role;
-GRANT SELECT ON TABLE public.view_character_feats TO dnd_app_user;
+GRANT SELECT ON TABLE public.view_adventurer_feats TO dnd_player_role;
 
 
 --
 -- TOC entry 4235 (class 0 OID 0)
--- Dependencies: 316
--- Name: TABLE view_character_gear; Type: ACL; Schema: public; Owner: postgres
+-- Dependencies: 313
+-- Name: TABLE view_adventurer_gear; Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT SELECT ON TABLE public.view_character_gear TO dnd_player_role;
+GRANT SELECT ON TABLE public.view_adventurer_gear TO dnd_player_role;
 
 
 --
 -- TOC entry 4236 (class 0 OID 0)
--- Dependencies: 299
--- Name: TABLE view_character_skills; Type: ACL; Schema: public; Owner: postgres
+-- Dependencies: 315
+-- Name: TABLE view_adventurer_skills; Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT SELECT ON TABLE public.view_character_skills TO dnd_player_role;
-GRANT SELECT ON TABLE public.view_character_skills TO dnd_app_user;
+GRANT SELECT ON TABLE public.view_adventurer_skills TO dnd_player_role;
 
 
 --
 -- TOC entry 4237 (class 0 OID 0)
--- Dependencies: 300
--- Name: TABLE view_character_spells; Type: ACL; Schema: public; Owner: postgres
+-- Dependencies: 316
+-- Name: TABLE view_adventurer_spells; Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT SELECT ON TABLE public.view_character_spells TO dnd_player_role;
-GRANT SELECT ON TABLE public.view_character_spells TO dnd_app_user;
+GRANT SELECT ON TABLE public.view_adventurer_spells TO dnd_player_role;
 
 
 --
 -- TOC entry 4238 (class 0 OID 0)
--- Dependencies: 314
--- Name: TABLE view_character_weapons; Type: ACL; Schema: public; Owner: postgres
+-- Dependencies: 311
+-- Name: TABLE view_adventurer_weapons; Type: ACL; Schema: public; Owner: postgres
 --
 
-GRANT SELECT ON TABLE public.view_character_weapons TO dnd_player_role;
+GRANT SELECT ON TABLE public.view_adventurer_weapons TO dnd_player_role;
 
 
 --
 -- TOC entry 4239 (class 0 OID 0)
--- Dependencies: 301
+-- Dependencies: 298
 -- Name: TABLE view_feat_details; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -5879,7 +5876,7 @@ GRANT SELECT ON TABLE public.view_feat_details TO dnd_player_role;
 
 --
 -- TOC entry 4240 (class 0 OID 0)
--- Dependencies: 302
+-- Dependencies: 299
 -- Name: TABLE weapon_properties; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -5889,7 +5886,7 @@ GRANT SELECT ON TABLE public.weapon_properties TO dnd_player_role;
 
 --
 -- TOC entry 4241 (class 0 OID 0)
--- Dependencies: 303
+-- Dependencies: 300
 -- Name: TABLE view_item_details; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -5899,7 +5896,7 @@ GRANT SELECT ON TABLE public.view_item_details TO dnd_app_user;
 
 --
 -- TOC entry 4242 (class 0 OID 0)
--- Dependencies: 304
+-- Dependencies: 301
 -- Name: TABLE view_monster_details; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -5909,7 +5906,7 @@ GRANT SELECT ON TABLE public.view_monster_details TO dnd_gm_role;
 
 --
 -- TOC entry 4243 (class 0 OID 0)
--- Dependencies: 305
+-- Dependencies: 302
 -- Name: TABLE view_spell_details; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -5919,7 +5916,7 @@ GRANT SELECT ON TABLE public.view_spell_details TO dnd_player_role;
 
 --
 -- TOC entry 4244 (class 0 OID 0)
--- Dependencies: 306
+-- Dependencies: 303
 -- Name: TABLE weapon_damage_type; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -5927,11 +5924,11 @@ GRANT SELECT ON TABLE public.weapon_damage_type TO dnd_app_user;
 GRANT SELECT ON TABLE public.weapon_damage_type TO dnd_player_role;
 
 
--- Completed on 2026-01-08 23:51:42 CET
+-- Completed on 2026-01-09 13:37:39 CET
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 7GEaX4ieytJbIdhQkzbumWvQMmcrREWupFVBkylmsdpfHakR1DEtdNLweN8b4FC
+\unrestrict WqAN5vpSFhzqdWH7PvMjY6mGo9KoFxoU4gWF8zI0icLVry5kKuQMAEseIeOAmVL
 

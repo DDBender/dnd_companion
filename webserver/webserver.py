@@ -211,34 +211,34 @@ def login():
         if conn:
             conn.close()
 
-# Route to get the characters of a user. Not all character information is loaded, just for an overview
-@app.route('/api/characters', methods=['GET'])
+# Route to get the adventurers of a user. Not all adventurer information is loaded, just for an overview
+@app.route('/api/adventurers', methods=['GET'])
 @token_required
-def get_user_characters(current_user_id):
+def get_user_adventurers(current_user_id):
     conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Join characters, race and class info for the characters
+        # Join adventurers, race and class info for the adventurers
         query = """
             SELECT
                 c.*,
                 r.name as race_name,
                 json_agg(json_build_object('class', cl.name, 'level', cc.class_level))
                     FILTER (WHERE cl.id IS NOT NULL) as classes
-            FROM characters c
+            FROM adventurers c
             JOIN races r ON c.race_id = r.id
-            LEFT JOIN character_classes cc ON c.id = cc.character_id
+            LEFT JOIN adventurer_classes cc ON c.id = cc.adventurer_id
             LEFT JOIN classes cl ON cc.class_id = cl.id
             WHERE c.user_id = %s
             GROUP BY c.id, r.name;
         """
         cur.execute(query, (current_user_id,))
-        characters = cur.fetchall()
+        adventurers = cur.fetchall()
         cur.close()
 
-        return jsonify(characters)
+        return jsonify(adventurers)
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(f"Server Error: {error}")
@@ -247,10 +247,10 @@ def get_user_characters(current_user_id):
         if conn:
             conn.close()
 
-# Create a new character
-@app.route('/api/characters', methods=['POST'])
+# Create a new adventurer
+@app.route('/api/adventurers', methods=['POST'])
 @token_required
-def create_character(current_user_id):
+def create_adventurer(current_user_id):
     data = request.json
     # Basic validation
     if not data or not data.get('name') or not data.get('race_id'):
@@ -261,9 +261,9 @@ def create_character(current_user_id):
         conn = get_db_connection() # Default role 'player' has write access
         cur = conn.cursor()
 
-        # Insert character
+        # Insert adventurer
         query = """
-            INSERT INTO characters (
+            INSERT INTO adventurers (
                 user_id, name, race_id, alignment, gender, age, height, weight, description,
                 strength, dexterity, constitution, intelligence, wisdom, charisma,
                 hit_points_max, hit_points_current, experience_points, money_gp
@@ -294,24 +294,24 @@ def create_character(current_user_id):
             data.get('experience_points', 0),
             data.get('money_gp', 0)
         ))
-        character_id = cur.fetchone()['id']
+        adventurer_id = cur.fetchone()['id']
 
         # Insert classes if present
         # Expecting list of dicts: [{"class_id": 1, "level": 1}, ...]
         classes = data.get('classes', [])
         if classes:
             class_query = """
-                INSERT INTO character_classes (character_id, class_id, class_level)
+                INSERT INTO adventurer_classes (adventurer_id, class_id, class_level)
                 VALUES (%s, %s, %s)
             """
             for c in classes:
                 c_id = c.get('class_id')
                 level = c.get('level')
                 if c_id and level:
-                    cur.execute(class_query, (character_id, c_id, level))
+                    cur.execute(class_query, (adventurer_id, c_id, level))
 
         conn.commit()
-        return jsonify({'message': 'Character created successfully', 'character_id': character_id}), 201
+        return jsonify({'message': 'Adventurer created successfully', 'adventurer_id': adventurer_id}), 201
 
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
@@ -322,10 +322,10 @@ def create_character(current_user_id):
         if conn:
             conn.close()
 
-# Update an existing character
-@app.route('/api/characters/<int:character_id>', methods=['PUT'])
+# Update an existing adventurer
+@app.route('/api/adventurers/<int:adventurer_id>', methods=['PUT'])
 @token_required
-def update_character(current_user_id, character_id):
+def update_adventurer(current_user_id, adventurer_id):
     data = request.json
     conn = None
     try:
@@ -333,10 +333,10 @@ def update_character(current_user_id, character_id):
         cur = conn.cursor()
 
         # Check ownership
-        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        cur.execute("SELECT user_id FROM adventurers WHERE id = %s", (adventurer_id,))
         char = cur.fetchone()
         if not char:
-            return jsonify({'message': 'Character not found'}), 404
+            return jsonify({'message': 'Adventurer not found'}), 404
         if char['user_id'] != current_user_id:
             return jsonify({'message': 'Unauthorized'}), 403
 
@@ -356,12 +356,12 @@ def update_character(current_user_id, character_id):
         if not fields:
             return jsonify({'message': 'No valid fields provided for update'}), 400
             
-        values.append(character_id)
-        query = f"UPDATE characters SET {', '.join(fields)} WHERE id = %s"
+        values.append(adventurer_id)
+        query = f"UPDATE adventurers SET {', '.join(fields)} WHERE id = %s"
         cur.execute(query, tuple(values))
         conn.commit()
         
-        return jsonify({'message': 'Character updated successfully'}), 200
+        return jsonify({'message': 'Adventurer updated successfully'}), 200
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
@@ -371,10 +371,10 @@ def update_character(current_user_id, character_id):
         if conn:
             conn.close()
 
-# Add an item to character inventory
-@app.route('/api/characters/<int:character_id>/inventory', methods=['POST'])
+# Add an item to adventurer inventory
+@app.route('/api/adventurers/<int:adventurer_id>/inventory', methods=['POST'])
 @token_required
-def add_character_item(current_user_id, character_id):
+def add_adventurer_item(current_user_id, adventurer_id):
     data = request.json
     if not data or not data.get('item_id'):
         return jsonify({'message': 'Item ID is required'}), 400
@@ -388,10 +388,10 @@ def add_character_item(current_user_id, character_id):
         cur = conn.cursor()
         
         # Check ownership
-        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        cur.execute("SELECT user_id FROM adventurers WHERE id = %s", (adventurer_id,))
         char = cur.fetchone()
         if not char:
-            return jsonify({'message': 'Character not found'}), 404
+            return jsonify({'message': 'Adventurer not found'}), 404
         if char['user_id'] != current_user_id:
             return jsonify({'message': 'Unauthorized'}), 403
             
@@ -410,11 +410,11 @@ def add_character_item(current_user_id, character_id):
         item_type = result['name'].lower()
         
         if item_type == 'weapon':
-            cur.execute("INSERT INTO character_weapons (character_id, item_id, quantity) VALUES (%s, %s, %s)", (character_id, item_id, quantity))
+            cur.execute("INSERT INTO adventurer_weapons (adventurer_id, item_id, quantity) VALUES (%s, %s, %s)", (adventurer_id, item_id, quantity))
         elif item_type == 'armor':
-            cur.execute("INSERT INTO character_armor (character_id, item_id, quantity) VALUES (%s, %s, %s)", (character_id, item_id, quantity))
+            cur.execute("INSERT INTO adventurer_armor (adventurer_id, item_id, quantity) VALUES (%s, %s, %s)", (adventurer_id, item_id, quantity))
         else:
-            cur.execute("INSERT INTO character_gear (character_id, item_id, quantity) VALUES (%s, %s, %s)", (character_id, item_id, quantity))
+            cur.execute("INSERT INTO adventurer_gear (adventurer_id, item_id, quantity) VALUES (%s, %s, %s)", (adventurer_id, item_id, quantity))
             
         conn.commit()
         
@@ -428,10 +428,10 @@ def add_character_item(current_user_id, character_id):
         if conn:
             conn.close()
 
-# Add a feat to character
-@app.route('/api/characters/<int:character_id>/feats', methods=['POST'])
+# Add a feat to adventurer
+@app.route('/api/adventurers/<int:adventurer_id>/feats', methods=['POST'])
 @token_required
-def add_character_feat(current_user_id, character_id):
+def add_adventurer_feat(current_user_id, adventurer_id):
     data = request.json
     if not data or not data.get('feat_id'):
         return jsonify({'message': 'Feat ID is required'}), 400
@@ -445,21 +445,21 @@ def add_character_feat(current_user_id, character_id):
         cur = conn.cursor()
         
         # Check ownership
-        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        cur.execute("SELECT user_id FROM adventurers WHERE id = %s", (adventurer_id,))
         char = cur.fetchone()
         if not char:
-            return jsonify({'message': 'Character not found'}), 404
+            return jsonify({'message': 'Adventurer not found'}), 404
         if char['user_id'] != current_user_id:
             return jsonify({'message': 'Unauthorized'}), 403
             
         # Insert feat
         cur.execute("""
-            INSERT INTO character_feats (character_id, feat_id, note)
+            INSERT INTO adventurer_feats (adventurer_id, feat_id, note)
             VALUES (%s, %s, %s)
-        """, (character_id, feat_id, note))
+        """, (adventurer_id, feat_id, note))
         conn.commit()
         
-        return jsonify({'message': 'Feat added to character'}), 201
+        return jsonify({'message': 'Feat added to adventurer'}), 201
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
@@ -469,10 +469,10 @@ def add_character_feat(current_user_id, character_id):
         if conn:
             conn.close()
 
-# Add/Update a skill for character
-@app.route('/api/characters/<int:character_id>/skills', methods=['POST'])
+# Add/Update a skill for adventurer
+@app.route('/api/adventurers/<int:adventurer_id>/skills', methods=['POST'])
 @token_required
-def add_character_skill(current_user_id, character_id):
+def add_adventurer_skill(current_user_id, adventurer_id):
     data = request.json
     if not data or not data.get('skill_id') or data.get('ranks') is None:
         return jsonify({'message': 'Skill ID and Ranks are required'}), 400
@@ -486,21 +486,21 @@ def add_character_skill(current_user_id, character_id):
         cur = conn.cursor()
         
         # Check ownership
-        cur.execute("SELECT user_id FROM characters WHERE id = %s", (character_id,))
+        cur.execute("SELECT user_id FROM adventurers WHERE id = %s", (adventurer_id,))
         char = cur.fetchone()
         if not char:
-            return jsonify({'message': 'Character not found'}), 404
+            return jsonify({'message': 'Adventurer not found'}), 404
         if char['user_id'] != current_user_id:
             return jsonify({'message': 'Unauthorized'}), 403
         
         # Check if skill exists (Upsert logic)
-        cur.execute("SELECT id FROM character_skills WHERE character_id = %s AND skill_id = %s", (character_id, skill_id))
+        cur.execute("SELECT id FROM adventurer_skills WHERE adventurer_id = %s AND skill_id = %s", (adventurer_id, skill_id))
         existing_skill = cur.fetchone()
         
         if existing_skill:
-            cur.execute("UPDATE character_skills SET ranks = %s WHERE id = %s", (ranks, existing_skill['id']))
+            cur.execute("UPDATE adventurer_skills SET ranks = %s WHERE id = %s", (ranks, existing_skill['id']))
         else:
-            cur.execute("INSERT INTO character_skills (character_id, skill_id, ranks) VALUES (%s, %s, %s)", (character_id, skill_id, ranks))
+            cur.execute("INSERT INTO adventurer_skills (adventurer_id, skill_id, ranks) VALUES (%s, %s, %s)", (adventurer_id, skill_id, ranks))
             
         conn.commit()
         return jsonify({'message': 'Skill updated successfully'}), 200
@@ -513,55 +513,55 @@ def add_character_skill(current_user_id, character_id):
         if conn:
             conn.close()
 
-# Fetch full character sheet for a giving character. Should only be run if the user is owner of the character
-@app.route('/api/characters/<int:character_id>')
+# Fetch full adventurer sheet for a giving adventurer. Should only be run if the user is owner of the adventurer
+@app.route('/api/adventurers/<int:adventurer_id>')
 @token_required
-def get_character_sheet(current_user_id, character_id):
+def get_adventurer_sheet(current_user_id, adventurer_id):
     conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # 1. Basic character info, race, and classes
-        query_char = """
+        # 1. Basic adventurer info, race, and classes
+        query_adv = """
             SELECT
                 c.*,
                 r.name as race_name,
                 json_agg(json_build_object('class', cl.name, 'level', cc.class_level))
                     FILTER (WHERE cl.id IS NOT NULL) as classes
-            FROM characters c
+            FROM adventurers c
             JOIN races r ON c.race_id = r.id
-            LEFT JOIN character_classes cc ON c.id = cc.character_id
+            LEFT JOIN adventurer_classes cc ON c.id = cc.adventurer_id
             LEFT JOIN classes cl ON cc.class_id = cl.id
             WHERE c.id = %s AND c.user_id = %s
             GROUP BY c.id, r.name;
         """
-        cur.execute(query_char, (character_id, current_user_id))
-        character = cur.fetchone()
+        cur.execute(query_adv, (adventurer_id, current_user_id))
+        adventurer = cur.fetchone()
 
-        if character is None:
-            abort(404, description="Character not found")
+        if adventurer is None:
+            abort(404, description="Adventurer not found")
 
         # Inventory split into weapons, armor, and gear
-        cur.execute("SELECT * FROM view_character_weapons WHERE character_id = %s", (character_id,))
-        character['weapons'] = cur.fetchall()
+        cur.execute("SELECT * FROM view_adventurer_weapons WHERE adventurer_id = %s", (adventurer_id,))
+        adventurer['weapons'] = cur.fetchall()
 
-        cur.execute("SELECT * FROM view_character_armor WHERE character_id = %s", (character_id,))
-        character['armor'] = cur.fetchall()
+        cur.execute("SELECT * FROM view_adventurer_armor WHERE adventurer_id = %s", (adventurer_id,))
+        adventurer['armor'] = cur.fetchall()
 
-        cur.execute("SELECT * FROM view_character_gear WHERE character_id = %s", (character_id,))
-        character['gear'] = cur.fetchall()
+        cur.execute("SELECT * FROM view_adventurer_gear WHERE adventurer_id = %s", (adventurer_id,))
+        adventurer['gear'] = cur.fetchall()
 
-        cur.execute("SELECT * FROM view_character_feats WHERE character_id = %s", (character_id,))
-        character['feats'] = cur.fetchall()
+        cur.execute("SELECT * FROM view_adventurer_feats WHERE adventurer_id = %s", (adventurer_id,))
+        adventurer['feats'] = cur.fetchall()
 
-        cur.execute("SELECT * FROM view_character_skills WHERE character_id = %s", (character_id,))
-        character['skills'] = cur.fetchall()
+        cur.execute("SELECT * FROM view_adventurer_skills WHERE adventurer_id = %s", (adventurer_id,))
+        adventurer['skills'] = cur.fetchall()
 
-        cur.execute("SELECT * FROM view_character_spells WHERE character_id = %s", (character_id,))
-        character['spells'] = cur.fetchall()
+        cur.execute("SELECT * FROM view_adventurer_spells WHERE adventurer_id = %s", (adventurer_id,))
+        adventurer['spells'] = cur.fetchall()
 
-        return jsonify(character)
+        return jsonify(adventurer)
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(f"Server Error: {error}")
