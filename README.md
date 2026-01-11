@@ -1,12 +1,12 @@
 # 3.5e Database Companion
 App, server and database toolkit for players and DMs. This project provides a robust framework for managing 3.5e campaigns, pre-loaded with official SRD content.
-**Note:** This repository contains only Open Game Content (SRD). Private campaign data or non-SRD content must be added manually by the user.
+**Note:** This repository contains only Open Game Content (SRD). Private campaign data or non-SRD content must be added manually by the user. The data will be provided as separate sql files.
 
 ## Project Purpose
 This is a personal passion project built for fun and learning. My goal is to combine my interest in tabletop RPGs with a modern tech stack (Flutter, Python, PostgreSQL) and explore the capabilities of AI-assisted development.
 
 ## Built With
-- **AI Assistance:** Database schemas and boilerplate server logic were co-developed with **Gemini Code Assist**. All generated code has been audited and verified for accuracy.
+- **AI Assistance:** Database data and boilerplate server logic were retrieved co-developed with **Gemini Code Assist**. All generated code has been audited and verified for accuracy.
 - **Frontend (planned):** Flutter (Dart) — Cross-platform UI for Android, iOS, and Web.
 - **Backend:** Python 
     * **Framework:** Flask (REST API)
