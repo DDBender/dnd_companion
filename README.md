@@ -1,6 +1,6 @@
 # 3.5e Database Companion
 App, server and database toolkit for players and DMs. This project provides a robust framework for managing 3.5e campaigns, pre-loaded with official SRD content.
-**Note:** This repository contains only Open Game Content (SRD). Private campaign data or non-SRD content must be added manually by the user. The data will be provided as separate sql files.
+**Note:** This repository contains only Open Game Content (SRD). Private campaign data or non-SRD content must be added manually by the user. The SRD data will be provided as separate sql files.
 
 ## Project Purpose
 This is a personal passion project built for fun and learning. My goal is to combine my interest in tabletop RPGs with a modern tech stack (Flutter, Python, PostgreSQL) and explore the capabilities of AI-assisted development.
@@ -12,6 +12,22 @@ This is a personal passion project built for fun and learning. My goal is to com
     * **Framework:** Flask (REST API)
     * **WSGI Server (planned):** Gunicorn (Production-grade deployment)
 - **Database:** PostgreSQL — Relational storage for complex 3.5e SRD schemas.
+
+## Guide
+### Database
+The database needs to have a few roles accessible before importing
+- dnd_player_role (for players, have access to their adventurers, no access to users or monsters)
+- dnd_gm_role (for the gm, with access to monsters)
+- dnd_auth_role (for the admin, access to users)
+The **.env** file holds the database configuration for the webserver
+
+### Webserver
+If you want to host it on a server, make sure to have the following dependencies installed via pip (preferrably using a virtual environment):
+`pip install psycopg2-binary Flask python-dotenv PyJWT`
+Don't forget to configure the .env file with the correct data for the db and your secret key for the webserver!
+
+### App
+The app should be configured to use the correct server to connect to using its .env file
 
 ## Licensing & Legal
 
