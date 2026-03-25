@@ -24,6 +24,11 @@ GNU General Public License for more details.
 # psycopg2 is used for the database connection (PostgreSQL)
 # flask is used for the webserver
 # dotenv is used for environment variables. Like the database information.
+# jwt is used for tokens
+# datetime is used for time
+# functools is used for wrapper functions
+# werkzeug is used for security
+# logging is used for logging
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -33,6 +38,10 @@ import jwt
 import datetime
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -171,7 +180,7 @@ def register():
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -205,7 +214,7 @@ def login():
 
         return jsonify({'message': 'Could not verify'}), 401
     except Exception as e:
-        print(e)
+        logger.error(f"Error: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
     finally:
         if conn:
@@ -222,17 +231,8 @@ def get_user_adventurers(current_user_id):
 
         # Join adventurers, race and class info for the adventurers
         query = """
-            SELECT
-                c.*,
-                r.name as race_name,
-                json_agg(json_build_object('class', cl.name, 'level', cc.class_level))
-                    FILTER (WHERE cl.id IS NOT NULL) as classes
-            FROM adventurers c
-            JOIN races r ON c.race_id = r.id
-            LEFT JOIN adventurer_classes cc ON c.id = cc.adventurer_id
-            LEFT JOIN classes cl ON cc.class_id = cl.id
-            WHERE c.user_id = %s
-            GROUP BY c.id, r.name;
+            SELECT * FROM public.view_adventurer_overview
+            WHERE user_id = %s;
         """
         cur.execute(query, (current_user_id,))
         adventurers = cur.fetchall()
@@ -241,7 +241,7 @@ def get_user_adventurers(current_user_id):
         return jsonify(adventurers)
 
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -316,7 +316,7 @@ def create_adventurer(current_user_id):
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -365,7 +365,7 @@ def update_adventurer(current_user_id, adventurer_id):
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -422,7 +422,7 @@ def add_adventurer_item(current_user_id, adventurer_id):
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -463,7 +463,7 @@ def add_adventurer_feat(current_user_id, adventurer_id):
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -507,7 +507,7 @@ def add_adventurer_skill(current_user_id, adventurer_id):
     except (Exception, psycopg2.DatabaseError) as error:
         if conn:
             conn.rollback()
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -545,18 +545,30 @@ def get_adventurer_sheet(current_user_id, adventurer_id):
         # Inventory split into weapons, armor, and gear
         cur.execute("SELECT * FROM view_adventurer_weapons WHERE adventurer_id = %s", (adventurer_id,))
         adventurer['weapons'] = cur.fetchall()
+        for item in adventurer['weapons']:
+            if item.get('weight'): item['weight'] = float(item['weight'])
+
 
         cur.execute("SELECT * FROM view_adventurer_armor WHERE adventurer_id = %s", (adventurer_id,))
         adventurer['armor'] = cur.fetchall()
+        for item in adventurer['armor']:
+            if item.get('weight'): item['weight'] = float(item['weight'])
+
 
         cur.execute("SELECT * FROM view_adventurer_gear WHERE adventurer_id = %s", (adventurer_id,))
         adventurer['gear'] = cur.fetchall()
+        for item in adventurer['gear']:
+            if item.get('weight'): item['weight'] = float(item['weight'])
+
 
         cur.execute("SELECT * FROM view_adventurer_feats WHERE adventurer_id = %s", (adventurer_id,))
         adventurer['feats'] = cur.fetchall()
 
         cur.execute("SELECT * FROM view_adventurer_skills WHERE adventurer_id = %s", (adventurer_id,))
         adventurer['skills'] = cur.fetchall()
+        for skill in adventurer['skills']:
+            if skill.get('ranks'): skill['ranks'] = float(skill['ranks'])
+
 
         cur.execute("SELECT * FROM view_adventurer_spells WHERE adventurer_id = %s", (adventurer_id,))
         adventurer['spells'] = cur.fetchall()
@@ -564,7 +576,7 @@ def get_adventurer_sheet(current_user_id, adventurer_id):
         return jsonify(adventurer)
 
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -581,7 +593,7 @@ def get_items():
         search = request.args.get('search')
 
         cur = conn.cursor()
-        query = "SELECT id, name, item_type, price, weight, book_name FROM view_item_details"
+        query = "SELECT id, name, item_type, book_name FROM view_item_search"
         filters = []
         params = []
 
@@ -593,8 +605,7 @@ def get_items():
             filters.append("name ILIKE %s")
             params.append(f"%{name}%")
         if search:
-            filters.append("(name ILIKE %s OR description ILIKE %s)")
-            params.append(f"%{search}%")
+            filters.append("name ILIKE %s")
             params.append(f"%{search}%")
 
         if filters:
@@ -605,7 +616,7 @@ def get_items():
         items = cur.fetchall()
         return jsonify(items)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -622,7 +633,7 @@ def get_item_categories():
         categories = [row['name'] for row in cur.fetchall()]
         return jsonify(categories)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -635,13 +646,54 @@ def get_item_detail(item_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM view_item_details WHERE id = %s;", (item_id,))
+        cur.execute("SELECT * FROM view_gear_details WHERE id = %s;", (item_id,))
         item = cur.fetchone()
         if item is None:
             abort(404, description="Item not found")
+        if item.get('weight'): item['weight'] = float(item['weight'])
         return jsonify(item)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Fetch the exact details for a weapon
+@app.route('/api/weapons/<int:item_id>')
+def get_weapon_detail(item_id):
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM view_weapon_details WHERE id = %s;", (item_id,))
+        item = cur.fetchone()
+        if item is None:
+            abort(404, description="Weapon not found")
+        if item.get('weight'): item['weight'] = float(item['weight'])
+        return jsonify(item)
+    except (Exception, psycopg2.DatabaseError) as error:
+        logger.error(f"Server Error: {error}")
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Fetch the exact details for armor
+@app.route('/api/armor/<int:item_id>')
+def get_armor_detail(item_id):
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM view_armor_details WHERE id = %s;", (item_id,))
+        item = cur.fetchone()
+        if item is None:
+            abort(404, description="Armor not found")
+        if item.get('weight'): item['weight'] = float(item['weight'])
+        return jsonify(item)
+    except (Exception, psycopg2.DatabaseError) as error:
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -655,11 +707,10 @@ def get_spells():
         conn = get_db_connection()
         search = request.args.get('search')
         cur = conn.cursor()
-        query = "SELECT id, name, school, subschool, book_name FROM view_spell_details"
+        query = "SELECT id, name, school, book_name FROM view_spell_search"
         params = []
         if search:
-            query += " WHERE (name ILIKE %s OR description ILIKE %s)"
-            params.append(f"%{search}%")
+            query += " WHERE name ILIKE %s"
             params.append(f"%{search}%")
         query += " ORDER BY name;"
 
@@ -667,7 +718,7 @@ def get_spells():
         spells = cur.fetchall()
         return jsonify(spells)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -686,7 +737,7 @@ def get_spell_detail(spell_id):
             abort(404, description="Spell not found")
         return jsonify(spell)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -700,12 +751,10 @@ def get_feats():
         conn = get_db_connection()
         search = request.args.get('search')
         cur = conn.cursor()
-        query = "SELECT id, name, feat_type, book_name FROM view_feat_details"
+        query = "SELECT id, name, feat_type, book_name FROM view_feat_search"
         params = []
         if search:
-            query += " WHERE (name ILIKE %s OR benefit ILIKE %s OR description ILIKE %s)"
-            params.append(f"%{search}%")
-            params.append(f"%{search}%")
+            query += " WHERE name ILIKE %s"
             params.append(f"%{search}%")
         query += " ORDER BY name;"
 
@@ -713,7 +762,7 @@ def get_feats():
         feats = cur.fetchall()
         return jsonify(feats)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -725,14 +774,14 @@ def get_feat_detail(feat_id):
     conn = None
     try:
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute("SELECT * FROM view_feat_details WHERE id = %s;", (feat_id,))
         feat = cur.fetchone()
         if feat is None:
             abort(404, description="Feat not found")
         return jsonify(feat)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -747,7 +796,7 @@ def get_monsters():
         conn = get_db_connection(db_role='dm')
         search = request.args.get('search')
         cur = conn.cursor()
-        query = "SELECT id, name, type, cr_text, book_name FROM view_monster_details"
+        query = "SELECT id, name, type, book_name FROM view_monster_search"
         params = []
         if search:
             query += " WHERE (name ILIKE %s OR type ILIKE %s)"
@@ -759,7 +808,7 @@ def get_monsters():
         monsters = cur.fetchall()
         return jsonify(monsters)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -777,9 +826,10 @@ def get_monster_detail(monster_id):
         monster = cur.fetchone()
         if monster is None:
             abort(404, description="Monster not found")
+        if monster.get('cr_number'): monster['cr_number'] = float(monster['cr_number'])
         return jsonify(monster)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -792,11 +842,11 @@ def get_races():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT id, name, size, type FROM races ORDER BY name;")
+        cur.execute("SELECT id, name, size, type, book_name FROM view_race_search ORDER BY name;")
         races = cur.fetchall()
         return jsonify(races)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -809,13 +859,13 @@ def get_race_detail(race_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM races WHERE id = %s;", (race_id,))
+        cur.execute("SELECT * FROM view_race_details WHERE id = %s;", (race_id,))
         race = cur.fetchone()
         if race is None:
             abort(404, description="Race not found")
         return jsonify(race)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -828,11 +878,11 @@ def get_classes():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT id, name, main_attr, dice_type FROM classes ORDER BY name;")
+        cur.execute("SELECT id, name, main_attr, book_name FROM view_class_search ORDER BY name;")
         classes = cur.fetchall()
         return jsonify(classes)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -845,13 +895,13 @@ def get_class_detail(class_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM classes WHERE id = %s;", (class_id,))
+        cur.execute("SELECT * FROM view_class_details WHERE id = %s;", (class_id,))
         class_data = cur.fetchone()
         if class_data is None:
             abort(404, description="Class not found")
         return jsonify(class_data)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -868,7 +918,7 @@ def get_rules():
         search = request.args.get('search')
 
         cur = conn.cursor()
-        query = "SELECT id, name, category, subcategory FROM rules"
+        query = "SELECT id, name, category, book_name FROM view_rule_search"
         filters = []
         params = []
 
@@ -880,8 +930,7 @@ def get_rules():
             filters.append("name ILIKE %s")
             params.append(f"%{name}%")
         if search:
-            filters.append("(name ILIKE %s OR description ILIKE %s)")
-            params.append(f"%{search}%")
+            filters.append("name ILIKE %s")
             params.append(f"%{search}%")
 
         if filters:
@@ -892,7 +941,7 @@ def get_rules():
         rules = cur.fetchall()
         return jsonify(rules)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -909,7 +958,7 @@ def get_rule_categories():
         categories = [row['category'] for row in cur.fetchall()]
         return jsonify(categories)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -922,13 +971,13 @@ def get_rule_detail(rule_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM rules WHERE id = %s;", (rule_id,))
+        cur.execute("SELECT * FROM view_rule_details WHERE id = %s;", (rule_id,))
         rule = cur.fetchone()
         if rule is None:
             abort(404, description="Rule not found")
         return jsonify(rule)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -941,11 +990,11 @@ def get_skills():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT id, name, key_attribute, trained_only, armor_check_penalty FROM skills ORDER BY name;")
+        cur.execute("SELECT id, name, key_attribute, book_name FROM view_skill_search ORDER BY name;")
         skills = cur.fetchall()
         return jsonify(skills)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -958,13 +1007,13 @@ def get_skill_detail(skill_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM skills WHERE id = %s;", (skill_id,))
+        cur.execute("SELECT * FROM view_skill_details WHERE id = %s;", (skill_id,))
         skill = cur.fetchone()
         if skill is None:
             abort(404, description="Skill not found")
         return jsonify(skill)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -978,11 +1027,10 @@ def get_conditions():
         conn = get_db_connection()
         search = request.args.get('search')
         cur = conn.cursor()
-        query = "SELECT id, name FROM conditions"
+        query = "SELECT id, name, book_name FROM view_condition_search"
         params = []
         if search:
-            query += " WHERE (name ILIKE %s OR description ILIKE %s)"
-            params.append(f"%{search}%")
+            query += " WHERE name ILIKE %s"
             params.append(f"%{search}%")
         query += " ORDER BY name;"
 
@@ -990,7 +1038,7 @@ def get_conditions():
         conditions = cur.fetchall()
         return jsonify(conditions)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -1003,13 +1051,13 @@ def get_condition_detail(condition_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM conditions WHERE id = %s;", (condition_id,))
+        cur.execute("SELECT * FROM view_condition_details WHERE id = %s;", (condition_id,))
         condition = cur.fetchone()
         if condition is None:
             abort(404, description="Condition not found")
         return jsonify(condition)
     except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Server Error: {error}")
+        logger.error(f"Server Error: {error}")
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
     finally:
         if conn:
@@ -1017,3 +1065,4 @@ def get_condition_detail(condition_id):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
