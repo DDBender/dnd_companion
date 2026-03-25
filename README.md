@@ -23,7 +23,9 @@ The **.env** file holds the database configuration for the webserver
 
 ### Webserver
 If you want to host it on a server, make sure to have the following dependencies installed via pip (preferrably using a virtual environment):
+
 `pip install psycopg2-binary Flask python-dotenv PyJWT`
+
 Don't forget to configure the .env file with the correct data for the db and your secret key for the webserver!
 
 ### App
