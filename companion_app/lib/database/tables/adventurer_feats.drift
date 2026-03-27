@@ -1,0 +1,7 @@
+CREATE TABLE adventurer_feats (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    adventurer_id INT NOT NULL REFERENCES adventurers(id) ON DELETE CASCADE,
+    feat_id INT NOT NULL REFERENCES feats(id),
+    note TEXT,
+    sync_is_dirty BOOLEAN DEFAULT TRUE
+);

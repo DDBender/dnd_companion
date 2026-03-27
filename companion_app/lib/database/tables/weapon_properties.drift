@@ -1,0 +1,9 @@
+CREATE TABLE weapon_properties (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    damage_id INT NOT NULL REFERENCES damage_scaling(id),
+    critical_id INT NOT NULL REFERENCES critical_combinations(id),
+    range INT,
+    handedness TEXT NOT NULL, -- ENUM
+    weapon_type TEXT NOT NULL, -- ENUM
+    weapon_category TEXT NOT NULL -- ENUM
+);

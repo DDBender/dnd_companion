@@ -1,0 +1,6 @@
+CREATE TABLE damage_scaling (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    base TEXT NOT NULL,
+    lower_one TEXT, lower_two TEXT, lower_three TEXT, lower_four TEXT,
+    higher_one TEXT, higher_two TEXT, higher_three TEXT, higher_four TEXT
+);

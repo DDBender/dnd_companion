@@ -1,0 +1,5 @@
+CREATE TABLE critical_combinations (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    crit_range INT,
+    crit_damage INT NOT NULL
+);

@@ -1,0 +1,10 @@
+CREATE TABLE class_progression (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    class_id INT NOT NULL REFERENCES classes(id),
+    level INT NOT NULL CHECK (level >= 1 AND level <= 20),
+    bab TEXT NOT NULL, -- Originally integer[]
+    fort INT NOT NULL,
+    ref INT NOT NULL,
+    will INT NOT NULL,
+    UNIQUE (class_id, level)
+);

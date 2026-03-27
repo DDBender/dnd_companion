@@ -1,0 +1,13 @@
+CREATE TABLE skills (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    key_attribute TEXT NOT NULL, -- ENUM
+    trained_only BOOLEAN DEFAULT FALSE NOT NULL,
+    armor_check_penalty BOOLEAN DEFAULT FALSE NOT NULL,
+    description TEXT,
+    source_id INT REFERENCES source_entries(id),
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_psionic BOOLEAN DEFAULT FALSE NOT NULL,
+    properties TEXT DEFAULT '{}', -- Originally jsonb
+    is_local_favorite BOOLEAN DEFAULT FALSE -- Added for local favorites
+);

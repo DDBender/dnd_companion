@@ -1,0 +1,15 @@
+CREATE TABLE adventurers (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    race_id INT REFERENCES races(id),
+    alignment TEXT, gender TEXT, age INT, height TEXT, weight TEXT,
+    description TEXT,
+    strength INT DEFAULT 10, dexterity INT DEFAULT 10, constitution INT DEFAULT 10,
+    intelligence INT DEFAULT 10, wisdom INT DEFAULT 10, charisma INT DEFAULT 10,
+    hit_points_max INT, hit_points_current INT,
+    experience_points INT DEFAULT 0, money_gp INT DEFAULT 0,
+    -- Sync flags
+    sync_is_dirty BOOLEAN DEFAULT TRUE,
+    sync_last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,0 +1,5 @@
+CREATE TABLE class_skills (
+    class_id INT NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    skill_id INT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+    PRIMARY KEY (class_id, skill_id)
+);

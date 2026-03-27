@@ -1,0 +1,6 @@
+CREATE TABLE spell_levels (
+    spell_id INT NOT NULL REFERENCES spells(id),
+    level INT,
+    class_id INT NOT NULL REFERENCES classes(id),
+    PRIMARY KEY (class_id, spell_id)
+);

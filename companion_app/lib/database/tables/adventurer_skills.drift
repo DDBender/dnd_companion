@@ -1,0 +1,8 @@
+CREATE TABLE adventurer_skills (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    adventurer_id INT NOT NULL REFERENCES adventurers(id) ON DELETE CASCADE,
+    skill_id INT NOT NULL REFERENCES skills(id),
+    ranks REAL DEFAULT 0 NOT NULL,
+    sub_skill TEXT,
+    sync_is_dirty BOOLEAN DEFAULT TRUE
+);

@@ -1,0 +1,7 @@
+CREATE TABLE adventurer_classes (
+    adventurer_id INT NOT NULL REFERENCES adventurers(id) ON DELETE CASCADE,
+    class_id INT NOT NULL REFERENCES classes(id),
+    class_level INT NOT NULL,
+    sync_is_dirty BOOLEAN DEFAULT TRUE,
+    PRIMARY KEY (adventurer_id, class_id)
+);

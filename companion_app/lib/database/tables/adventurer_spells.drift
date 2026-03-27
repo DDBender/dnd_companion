@@ -1,0 +1,10 @@
+CREATE TABLE adventurer_spells (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    adventurer_id INT REFERENCES adventurers(id) ON DELETE CASCADE,
+    spell_id INT REFERENCES spells(id),
+    is_prepared BOOLEAN DEFAULT FALSE,
+    is_known BOOLEAN DEFAULT TRUE,
+    notes TEXT,
+    prepared_count INT DEFAULT 0,
+    sync_is_dirty BOOLEAN DEFAULT TRUE
+);

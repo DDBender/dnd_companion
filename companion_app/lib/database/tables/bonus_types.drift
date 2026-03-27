@@ -1,0 +1,5 @@
+CREATE TABLE bonus_types (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT
+);

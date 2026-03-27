@@ -1,0 +1,13 @@
+CREATE TABLE character_classes (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    is_prestige BOOLEAN DEFAULT FALSE NOT NULL,
+    skill_points INT NOT NULL,
+    alignment TEXT NOT NULL,
+    source_id INT NOT NULL REFERENCES source_entries(id),
+    num_dice INT DEFAULT 1 NOT NULL,
+    dice_type INT NOT NULL,
+    main_attr TEXT NOT NULL, -- ENUM
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_local_favorite BOOLEAN DEFAULT FALSE -- Added for local favorites
+);

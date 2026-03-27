@@ -1,0 +1,8 @@
+CREATE TABLE adventurer_spell_slots (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    adventurer_id INT NOT NULL REFERENCES adventurers(id) ON DELETE CASCADE,
+    spell_level INT NOT NULL,
+    slots_used INT DEFAULT 0,
+    sync_is_dirty BOOLEAN DEFAULT TRUE,
+    UNIQUE (adventurer_id, spell_level)
+);

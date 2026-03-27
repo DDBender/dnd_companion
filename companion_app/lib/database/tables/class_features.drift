@@ -1,0 +1,7 @@
+CREATE TABLE class_features (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    class_id INT NOT NULL REFERENCES classes(id),
+    level INT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT
+);

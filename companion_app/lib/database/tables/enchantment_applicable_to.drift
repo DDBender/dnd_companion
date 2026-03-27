@@ -1,0 +1,5 @@
+CREATE TABLE enchantment_applicable_to (
+    enchantment_id INT NOT NULL REFERENCES enchantments(id),
+    item_type_id INT NOT NULL REFERENCES item_types(id),
+    PRIMARY KEY (enchantment_id, item_type_id)
+);

@@ -1,0 +1,7 @@
+CREATE TABLE conditions (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL,
+    source_id INT REFERENCES source_entries(id),
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+);

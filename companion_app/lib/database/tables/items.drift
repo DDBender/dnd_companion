@@ -1,0 +1,20 @@
+CREATE TABLE items (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    price INT,
+    weight REAL,
+    caster_level INT,
+    item_type_id INT NOT NULL REFERENCES item_types(id),
+    source_id INT REFERENCES source_entries(id),
+    body_slot_id INT REFERENCES body_slots(id),
+    base_item_id INT REFERENCES items(id),
+    is_unique BOOLEAN DEFAULT FALSE,
+    enhancement_bonus INT DEFAULT 0,
+    enchantment_ids TEXT, -- Originally integer[]
+    weapon_stats_id INT REFERENCES weapon_properties(id),
+    armor_stats_id INT REFERENCES armor_properties(id),
+    image_url TEXT,
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_local_favorite BOOLEAN DEFAULT FALSE -- Added for local favorites
+);

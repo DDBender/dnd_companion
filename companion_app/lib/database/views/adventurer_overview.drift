@@ -1,0 +1,10 @@
+CREATE VIEW view_adventurer_overview AS 
+SELECT a.id AS adventurer_id, 
+       a.user_id, 
+       a.name, 
+       COALESCE(GROUP_CONCAT(c.name || ' ' || ac.class_level, ' / '), 'No Class') AS class_summary, 
+       COALESCE(SUM(ac.class_level), 0) AS total_level 
+FROM adventurers a 
+LEFT JOIN adventurer_classes ac ON a.id = ac.adventurer_id
+LEFT JOIN classes c ON ac.class_id = c.id
+GROUP BY a.id, a.user_id, a.name;

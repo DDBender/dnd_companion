@@ -1,0 +1,6 @@
+CREATE TABLE race_features (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    race_id INT REFERENCES races(id),
+    name TEXT,
+    description TEXT
+);

@@ -1,0 +1,15 @@
+CREATE VIEW view_adventurer_details AS 
+SELECT a.*, r.name AS race_name,
+    (SELECT COALESCE(json_group_array(json_object('id', c.id, 'name', c.name, 'level', ac.class_level)), '[]') 
+     FROM adventurer_classes ac JOIN classes c ON ac.class_id = c.id WHERE ac.adventurer_id = a.id) AS classes,
+     
+    (SELECT COALESCE(json_group_array(json_object('id', ask.id, 'skill_id', s.id, 'name', s.name, 'ranks', ask.ranks, 'sub_skill', ask.sub_skill)), '[]') 
+     FROM adventurer_skills ask JOIN skills s ON ask.skill_id = s.id WHERE ask.adventurer_id = a.id) AS skills,
+     
+    (SELECT COALESCE(json_group_array(json_object('id', aw.id, 'item_id', aw.item_id, 'item_name', i.name, 'is_equipped', aw.is_equipped)), '[]') 
+     FROM adventurer_weapons aw JOIN items i ON aw.item_id = i.id WHERE aw.adventurer_id = a.id) AS weapons,
+
+    (SELECT COALESCE(json_group_array(json_object('id', aa.id, 'item_id', aa.item_id, 'item_name', i.name, 'is_equipped', aa.is_equipped)), '[]') 
+     FROM adventurer_armor aa JOIN items i ON aa.item_id = i.id WHERE aa.adventurer_id = a.id) AS armor
+FROM adventurers a 
+LEFT JOIN races r ON a.race_id = r.id;

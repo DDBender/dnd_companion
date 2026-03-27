@@ -1,0 +1,6 @@
+CREATE TABLE domains (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    granted_power TEXT,
+    source_id INT REFERENCES source_entries(id)
+);

@@ -1,0 +1,5 @@
+CREATE TABLE body_slots (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT
+);

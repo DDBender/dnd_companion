@@ -1,0 +1,8 @@
+CREATE TABLE source_entries (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    page INT,
+    errata TEXT,
+    book_id INT NOT NULL REFERENCES sources(id),
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (book_id, page)
+);

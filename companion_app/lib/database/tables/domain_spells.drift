@@ -1,0 +1,6 @@
+CREATE TABLE domain_spells (
+    domain_id INT NOT NULL REFERENCES domains(id) ON DELETE CASCADE,
+    spell_id INT NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
+    level INT NOT NULL,
+    PRIMARY KEY (domain_id, spell_id)
+);

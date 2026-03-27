@@ -1,0 +1,10 @@
+CREATE TABLE monsters (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    cr_text TEXT, type TEXT, alignment TEXT, hit_dice TEXT, description TEXT,
+    source_id INT REFERENCES source_entries(id),
+    num_dice INT, dice_type INT, bonus INT,
+    cr_number REAL,
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_local_favorite BOOLEAN DEFAULT FALSE -- Added for local favorites
+);

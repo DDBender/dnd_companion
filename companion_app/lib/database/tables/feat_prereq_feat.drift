@@ -1,0 +1,6 @@
+CREATE TABLE feat_prereq_feat (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    feat_id INT NOT NULL REFERENCES feats(id) ON DELETE CASCADE,
+    prereq_feat_id INT NOT NULL REFERENCES feats(id) ON DELETE CASCADE,
+    set_index INT DEFAULT 1
+);

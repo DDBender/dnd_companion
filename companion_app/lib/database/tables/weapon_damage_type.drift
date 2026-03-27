@@ -1,0 +1,5 @@
+CREATE TABLE weapon_damage_type (
+    weapon_properties_id INT NOT NULL REFERENCES weapon_properties(id) ON DELETE CASCADE,
+    damage_type_id INT NOT NULL REFERENCES damage_types(id),
+    PRIMARY KEY (weapon_properties_id, damage_type_id)
+);

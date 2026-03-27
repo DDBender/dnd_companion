@@ -1,0 +1,10 @@
+CREATE TABLE armor_properties (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    ac_bonus INT NOT NULL,
+    max_dex_bonus INT NOT NULL,
+    armor_check_penalty INT NOT NULL,
+    speed_thirty INT NOT NULL,
+    speed_twenty INT NOT NULL,
+    armor_category TEXT, -- ENUM
+    arcane_spell_failure INT DEFAULT 0
+);

@@ -1,0 +1,13 @@
+CREATE TABLE feats (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    feat_type TEXT,
+    benefit TEXT NOT NULL,
+    normal TEXT, special TEXT, description TEXT,
+    source_id INT NOT NULL REFERENCES source_entries(id),
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_multiple BOOLEAN DEFAULT FALSE,
+    is_stack BOOLEAN DEFAULT FALSE,
+    choice_text TEXT,
+    is_local_favorite BOOLEAN DEFAULT FALSE -- Added for local favorites
+);

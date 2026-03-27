@@ -1,0 +1,10 @@
+CREATE TABLE adventurer_items (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    adventurer_id INT NOT NULL REFERENCES adventurers(id) ON DELETE CASCADE,
+    item_id INT NOT NULL REFERENCES items(id),
+    quantity INT DEFAULT 1,
+    is_identified BOOLEAN DEFAULT FALSE,
+    custom_name TEXT,
+    notes TEXT,
+    sync_is_dirty BOOLEAN DEFAULT TRUE
+);

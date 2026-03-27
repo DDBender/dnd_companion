@@ -1,0 +1,15 @@
+CREATE TABLE adventurer_gear (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    adventurer_id INT NOT NULL REFERENCES adventurers(id) ON DELETE CASCADE,
+    item_id INT NOT NULL REFERENCES items(id),
+    quantity INT DEFAULT 1,
+    is_equipped BOOLEAN DEFAULT FALSE,
+    is_identified BOOLEAN DEFAULT FALSE,
+    enhancement_bonus INT DEFAULT 0,
+    enchantment_ids TEXT, -- Originally integer[]
+    override_caster_level INT,
+    current_charges INT,
+    custom_name TEXT,
+    notes TEXT,
+    sync_is_dirty BOOLEAN DEFAULT TRUE
+);

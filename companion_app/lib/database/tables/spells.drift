@@ -1,0 +1,24 @@
+CREATE TABLE spells (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    school TEXT NOT NULL,
+    subschool TEXT,
+    descriptors TEXT, -- Originally text[]
+    casting_time TEXT, spell_range TEXT, target TEXT, duration TEXT,
+    saving_throw TEXT, spell_resistance BOOLEAN DEFAULT FALSE NOT NULL,
+    description TEXT NOT NULL,
+    source_id INT NOT NULL REFERENCES source_entries(id),
+    has_verbal_component BOOLEAN DEFAULT FALSE NOT NULL,
+    has_somatic_component BOOLEAN DEFAULT FALSE NOT NULL,
+    has_material_component BOOLEAN DEFAULT FALSE NOT NULL,
+    has_focus_component BOOLEAN DEFAULT FALSE NOT NULL,
+    has_xp_component BOOLEAN DEFAULT FALSE NOT NULL,
+    has_divine_focus_component BOOLEAN DEFAULT FALSE NOT NULL,
+    has_expensive_component BOOLEAN DEFAULT FALSE NOT NULL,
+    material_focus_description TEXT,
+    gp_cost INT DEFAULT 0 NOT NULL,
+    xp_cost INT DEFAULT 0 NOT NULL,
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    area TEXT, effect TEXT, mechanics TEXT, -- Originally jsonb
+    is_local_favorite BOOLEAN DEFAULT FALSE -- Added for local favorites
+);

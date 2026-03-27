@@ -1,0 +1,13 @@
+CREATE TABLE enchantments (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    bonus_value INT DEFAULT 0,
+    flat_cost_gp INT DEFAULT 0,
+    creation_cost_gp INT DEFAULT 0,
+    creation_cost_xp INT DEFAULT 0,
+    prerequisites TEXT DEFAULT '{}', -- Originally jsonb
+    caster_level INT,
+    source_id INT NOT NULL REFERENCES source_entries(id),
+    bonus_type_id INT NOT NULL REFERENCES bonus_types(id)
+);

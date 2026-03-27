@@ -1,0 +1,13 @@
+CREATE TABLE races (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    size TEXT NOT NULL,
+    speed INT NOT NULL,
+    type TEXT NOT NULL,
+    source_id INT NOT NULL REFERENCES source_entries(id),
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    personality TEXT, physical_description TEXT, relations TEXT,
+    alignment TEXT, lands TEXT, religion TEXT, language TEXT,
+    names TEXT, adventurers TEXT,
+    is_local_favorite BOOLEAN DEFAULT FALSE -- Added for local favorites
+);
