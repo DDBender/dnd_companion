@@ -524,54 +524,14 @@ def get_adventurer_sheet(current_user_id, adventurer_id):
 
         # 1. Basic adventurer info, race, and classes
         query_adv = """
-            SELECT
-                c.*,
-                r.name as race_name,
-                json_agg(json_build_object('class', cl.name, 'level', cc.class_level))
-                    FILTER (WHERE cl.id IS NOT NULL) as classes
-            FROM adventurers c
-            JOIN races r ON c.race_id = r.id
-            LEFT JOIN adventurer_classes cc ON c.id = cc.adventurer_id
-            LEFT JOIN classes cl ON cc.class_id = cl.id
-            WHERE c.id = %s AND c.user_id = %s
-            GROUP BY c.id, r.name;
+            SELECT * FROM view_adventurer_detailed_export
+            WHERE adventurer_id = %s AND user_id = %s
         """
         cur.execute(query_adv, (adventurer_id, current_user_id))
         adventurer = cur.fetchone()
 
         if adventurer is None:
             abort(404, description="Adventurer not found")
-
-        # Inventory split into weapons, armor, and gear
-        cur.execute("SELECT * FROM view_adventurer_weapons WHERE adventurer_id = %s", (adventurer_id,))
-        adventurer['weapons'] = cur.fetchall()
-        for item in adventurer['weapons']:
-            if item.get('weight'): item['weight'] = float(item['weight'])
-
-
-        cur.execute("SELECT * FROM view_adventurer_armor WHERE adventurer_id = %s", (adventurer_id,))
-        adventurer['armor'] = cur.fetchall()
-        for item in adventurer['armor']:
-            if item.get('weight'): item['weight'] = float(item['weight'])
-
-
-        cur.execute("SELECT * FROM view_adventurer_gear WHERE adventurer_id = %s", (adventurer_id,))
-        adventurer['gear'] = cur.fetchall()
-        for item in adventurer['gear']:
-            if item.get('weight'): item['weight'] = float(item['weight'])
-
-
-        cur.execute("SELECT * FROM view_adventurer_feats WHERE adventurer_id = %s", (adventurer_id,))
-        adventurer['feats'] = cur.fetchall()
-
-        cur.execute("SELECT * FROM view_adventurer_skills WHERE adventurer_id = %s", (adventurer_id,))
-        adventurer['skills'] = cur.fetchall()
-        for skill in adventurer['skills']:
-            if skill.get('ranks'): skill['ranks'] = float(skill['ranks'])
-
-
-        cur.execute("SELECT * FROM view_adventurer_spells WHERE adventurer_id = %s", (adventurer_id,))
-        adventurer['spells'] = cur.fetchall()
 
         return jsonify(adventurer)
 

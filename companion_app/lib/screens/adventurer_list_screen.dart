@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../providers/adventurer_provider.dart';
-import '../models/adventurer.dart';
+import '../models/adventurer_summary.dart';
 import '../widgets/app_drawer.dart';
 
 class AdventurerListScreen extends ConsumerWidget {
@@ -12,8 +12,6 @@ class AdventurerListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final adventurersAsync = ref.watch(adventurersProvider);
-    // You can access the user role if needed to show DM-specific buttons
-    // final userRole = ref.watch(authProvider).userRole;
 
     return Scaffold(
       appBar: AppBar(
@@ -55,13 +53,13 @@ class AdventurerListScreen extends ConsumerWidget {
 }
 
 class AdventurerCard extends StatelessWidget {
-  final Adventurer adventurer;
+  final AdventurerSummary adventurer;
   const AdventurerCard({super.key, required this.adventurer});
 
   @override
   Widget build(BuildContext context) {
     // Helper to format class string (e.g., "Fighter 1, Wizard 2")
-    final classString = adventurer.paths?.map((c) => "${c.pathName} ${c.level}").join(", ") ?? "No Class";
+    final classString = adventurer.paths.map((c) => "${c.pathName} ${c.level}").join(", ");
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -69,11 +67,10 @@ class AdventurerCard extends StatelessWidget {
         leading: CircleAvatar(
           child: Text(adventurer.name.isNotEmpty ? adventurer.name[0].toUpperCase() : '?'),
         ),
-        title: Text(adventurer.name),
-        subtitle: Text('${adventurer.raceName ?? "Unknown Race"} - $classString'),
+        title: Text('${adventurer.name} (${adventurer.raceName}) Lv.${adventurer.totalLevel}'),
+        subtitle: Text('$classString, ${adventurer.moneyGp}GP'),
         trailing: const Icon(Icons.chevron_right),
         onTap: () {
-          // TODO: Navigate to adventurer detail screen
           context.push('/characters/${adventurer.id}');
         },
       ),

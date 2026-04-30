@@ -22,9 +22,10 @@ GNU General Public License for more details.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'service_providers.dart';
 import '../models/adventurer.dart';
+import '../models/adventurer_summary.dart';
 
 
-final adventurersProvider = FutureProvider.autoDispose<List<Adventurer>>((ref) async {
+final adventurersProvider = FutureProvider.autoDispose<List<AdventurerSummary>>((ref) async {
   final playerService = ref.watch(playerServiceProvider);
   return playerService.getAdventurers();
 });

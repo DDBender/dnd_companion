@@ -25,10 +25,24 @@ class AdventurerPath {
 
   AdventurerPath({required this.pathName, required this.level});
 
-  factory AdventurerPath.fromJson(Map<String, dynamic> json) {
+  factory AdventurerPath.summaryFromJson(Map<String, dynamic> json) {
+    final classDetails = json['class_details'] as Map<String, dynamic>? ?? {};
+    final classInfo = json['adventurer_class_info'] as Map<String, dynamic>? ?? {};
+
     return AdventurerPath(
-      pathName: json['class'],
-      level: json['level'],
+      pathName: classDetails['name'] ?? 'Unknown',
+      level: classInfo['class_level'] ?? 0,
     );
   }
+/*
+  factory AdventurerPath.detailsFromJson(Map<String, dynamic> json) {
+    final classDetails = json['class_details'] as Map<String, dynamic>? ?? {};
+    final classInfo = json['adventurer_class_info'] as Map<String, dynamic>? ?? {};
+
+    return AdventurerPath(
+      pathName: classDetails['name'] ?? 'Unknown',
+      level: classInfo['class_level'] ?? 0,
+    );
+  }
+  */
 }

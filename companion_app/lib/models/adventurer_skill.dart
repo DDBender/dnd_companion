@@ -41,15 +41,19 @@ class AdventurerSkill {
   });
 
   factory AdventurerSkill.fromJson(Map<String, dynamic> json) {
+    // Extract the nested maps
+    final info = json['adventurer_skill_info'] as Map<String, dynamic>;
+    final details = json['skill_details'] as Map<String, dynamic>;
+
     return AdventurerSkill(
-      id: json['id'],
-      adventurerId: json['adventurer_id'],
-      ranks: (json['ranks'] as num).toDouble(),
-      subSkill: json['sub_skill'],
-      skillName: json['skill_name'],
-      keyAttribute: json['key_attribute'],
-      trainedOnly: json['trained_only'] ?? false,
-      armorCheckPenalty: json['armor_check_penalty'] ?? false,
+      id: info['skill_id'],
+      adventurerId: info['adventurer_id'],
+      ranks: (info['ranks'] as num).toDouble(),
+      subSkill: info['sub_skill'],
+      skillName: details['name'], // Mapped from 'name' in skill_details
+      keyAttribute: details['key_attribute'],
+      trainedOnly: details['trained_only'] ?? false,
+      armorCheckPenalty: details['armor_check_penalty'] ?? false,
     );
   }
 }

@@ -20,6 +20,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 */
 import '../models/adventurer.dart';
+import '../models/adventurer_summary.dart';
 import 'api_client.dart';
 import 'package:logger/logger.dart';
 
@@ -29,10 +30,10 @@ class PlayerService {
   PlayerService(this._apiClient);
   final logger = Logger();
   
-  Future<List<Adventurer>> getAdventurers() async {
+  Future<List<AdventurerSummary>> getAdventurers() async {
     final response = await _apiClient.get('/api/adventurers');
     logger.d(response);
-    return (response as List).map((e) => Adventurer.fromJson(e)).toList();
+    return (response as List).map((e) => AdventurerSummary.fromJson(e)).toList();
   }
 
   Future<Adventurer> getAdventurer(int id) async {

@@ -28,6 +28,7 @@ import 'screens/adventurer_list_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/adventurer_sheet_screen.dart';
+import 'screens/adventurer_skills_screen.dart';
 import 'screens/feat_search_screen.dart';
 import 'screens/feat_detail_screen.dart';
 import 'screens/spell_search_screen.dart';
@@ -88,9 +89,19 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = int.parse(state.pathParameters['id']!);
               return AdventurerSheetScreen(adventurerId: id);
             },
+            routes: [
+              GoRoute(
+                path: '/skills',
+                builder: (context, state) {
+                  final adventurerId = int.parse(state.pathParameters['id']!);
+                  return AdventurerSkillsScreen(adventurerId: adventurerId);
+                },
+              ),
+            ]
           ),
         ],
       ),
+      
       GoRoute(
         path: '/feats',
         builder: (context, state) => const FeatSearchScreen(),

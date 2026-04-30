@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/adventurer_provider.dart';
+import '../widgets/adventurer_sheet_redirects.dart';
 
 class AdventurerSheetScreen extends ConsumerWidget {
   final int adventurerId;
@@ -46,6 +47,23 @@ class AdventurerSheetScreen extends ConsumerWidget {
               _buildDetailRow('HP', '${adventurer.hitPointsCurrent} / ${adventurer.hitPointsMax}'),
               _buildDetailRow('Gold', '${adventurer.moneyGp} GP'),
               
+              AdventurerSheetRedirectItem(
+                name: 'Skills',
+                description: 'View Character Skills',
+                route: '/characters/$adventurerId/skills',
+              ),
+              /*
+              AdventurerSheetRedirectItem(
+                name: 'Inventory',
+                description: 'Manage items and gear',
+                route: '/adventurer/$adventurerId/inventory',
+              ),
+              AdventurerSheetRedirectItem(
+                name: 'Quests',
+                description: 'Active and completed tasks',
+                route: '/adventurer/$adventurerId/quests',
+              ),
+              */
               const SizedBox(height: 20),
               Text('Description', style: Theme.of(context).textTheme.titleMedium),
               Text(adventurer.description ?? "No Description given"),
